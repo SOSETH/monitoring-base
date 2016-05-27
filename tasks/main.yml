@@ -1,0 +1,86 @@
+---
+  - name: Add debmon repository
+    apt_repository: repo='deb http://debmon.org/debmon debmon-jessie main' state=present
+    register: repochanged
+
+  - name: Add debmon repository key
+    apt_key: url=http://debmon.org/debmon/repo.key state=present
+
+  - name: Explicitly refresh apt cache
+    apt: update_cache=yes
+    when: repochanged.changed
+
+  - name: Install icinga
+    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
+    with_items:
+      - icinga2
+      - sysstat
+      - bc
+
+  - name: Enable default services
+    set_fact:
+      icinga_checks: ["apt", "icinga", "load", "mem", "procs", "users"]
+
+  - name: (mdadm) Detect mdadm raids
+    shell: cat /proc/mdstat | grep active | awk '{print $1}'
+    register: mdout
+    failed_when: False
+    changed_when: False
+
+  - name: (mdadm) Append mdadm raids to list of checks
+    set_fact: icinga_checks="{{icinga_checks}} + ['raid']"
+    when: mdout.rc == 0 and mdout.stdout != ""
+
+  - name: (disk) Detect mounted volumes
+    set_fact:
+      disk_item: "disk {{ item.device }}"
+    with_items: "{{ ansible_mounts|attr_in('mount', icinga_valid_mounts) }}"
+    register: diskappend
+
+  - name: (disk) Append detected mountpoints to list of checks
+    set_fact: icinga_checks="{{icinga_checks}} + {{ diskappend.results | map(attribute='ansible_facts.disk_item') | list }}"
+
+  - name: (iostat) Enumerate physical disks in this system
+    set_fact:
+      disk_item: "iostat {{ item }}"
+    with_items: "{{ ansible_devices.keys()|matching('[sva]d[a-z]') }}"
+    register: pdiskappend
+
+  - name: (iostat) Append detected disks to list of checks
+    set_fact: icinga_checks='{{icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list }}'
+
+  - name: (ceph) Detect if this node is a ceph monitor
+    shell: ps ax | grep ceph-mon | grep -v grep
+    register: cephout
+    changed_when: False
+    failed_when: False
+
+  - name: (ceph) Include ceph handler
+    include: ceph.yml
+    when: cephout.stdout != ""
+
+  - name: (ipmi) Include ipmi handler
+    include: ipmi.yml
+    when: ipmi_hosts is defined
+
+  - name: Create icinga config files
+    template: src={{item }}.j2 dest=/etc/icinga2/conf.d/{{item }} owner=root group=root mode=0644
+    notify: restart icinga
+    with_items:
+      - services.conf
+      - commands.conf
+      - hosts.conf
+
+  - name: Manually install a few checks from contrib
+    copy: src="{{ item }}" dest="/usr/lib/nagios/plugins/{{ item }}" owner=root group=root mode=0755
+    notify: restart icinga
+    with_items:
+      - check_iostat
+      - check_mem.pl
+      - check_raid.pl
+
+  - name: Create facts.d directory
+    file: dest=/etc/ansible/facts.d state=directory owner=root group=root
+
+  - name: Save list of enabled checks
+    copy: content={{ icinga_checks }} dest=/etc/ansible/facts.d/icinga_checks.fact

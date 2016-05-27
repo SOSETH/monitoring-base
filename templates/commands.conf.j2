@@ -1,0 +1,80 @@
+/* Command objects */
+
+object NotificationCommand "mail-host-notification" {
+  import "plugin-notification-command"
+
+  command = [ SysconfDir + "/icinga2/scripts/mail-host-notification.sh" ]
+
+  env = {
+    NOTIFICATIONTYPE = "$notification.type$"
+    HOSTALIAS = "$host.display_name$"
+    HOSTADDRESS = "$address$"
+    HOSTSTATE = "$host.state$"
+    LONGDATETIME = "$icinga.long_date_time$"
+    HOSTOUTPUT = "$host.output$"
+    NOTIFICATIONAUTHORNAME = "$notification.author$"
+    NOTIFICATIONCOMMENT = "$notification.comment$"
+    HOSTDISPLAYNAME = "$host.display_name$"
+    USEREMAIL = "$user.email$"
+  }
+}
+
+object NotificationCommand "mail-service-notification" {
+  import "plugin-notification-command"
+
+  command = [ SysconfDir + "/icinga2/scripts/mail-service-notification.sh" ]
+
+  env = {
+    NOTIFICATIONTYPE = "$notification.type$"
+    SERVICEDESC = "$service.name$"
+    HOSTALIAS = "$host.display_name$"
+    HOSTADDRESS = "$address$"
+    SERVICESTATE = "$service.state$"
+    LONGDATETIME = "$icinga.long_date_time$"
+    SERVICEOUTPUT = "$service.output$"
+    NOTIFICATIONAUTHORNAME = "$notification.author$"
+    NOTIFICATIONCOMMENT = "$notification.comment$"
+    HOSTDISPLAYNAME = "$host.display_name$"
+    SERVICEDISPLAYNAME = "$service.display_name$"
+    USEREMAIL = "$user.email$"
+  }
+}
+
+object CheckCommand "raid" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_raid.pl" ]
+}
+
+object CheckCommand "ceph" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check-ceph-dash.py" ]
+
+  arguments = {
+    "-u" = {
+      value = "$cd_url$"
+      description = "URL where ceph-dash runs."
+    }
+  }
+
+  vars.cd_url = "http://127.0.0.1:5000"
+}
+
+object CheckCommand "ipmi" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_ipmi_sensor" ]
+
+  arguments = {
+    "-H" = {
+      value = "$my_ipmi_ip$"
+      description = "IP of the IPMI to check"
+      required = true
+    }
+    "-f" = {
+      value = "$cfg_file$"
+      description = "Path to freeipmi config file"
+    }
+  }
+
+  vars.cfg_file = "/etc/icinga2/freeipmi.conf"
+  vars.my_ipmi_ip = "$ipmi_ip$"
+}

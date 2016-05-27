@@ -1,0 +1,14 @@
+[Unit]
+Description=ceph-dash service
+After=network.target
+
+[Service]
+Type=simple
+User=ceph
+Group=ceph
+WorkingDirectory=/opt/ceph-dash
+ExecStart=/usr/bin/python ceph-lodash.py
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
