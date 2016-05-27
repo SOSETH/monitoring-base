@@ -83,6 +83,8 @@ apply Service "procs" {
 
   check_command = "procs"
 
+  vars.procs_warning = "{{ icinga_procs_warn }}"
+  vars.procs_critical = "{{ icinga_procs_crit }}"
   assign where host.name == NodeName
 }
 

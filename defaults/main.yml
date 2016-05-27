@@ -1,0 +1,4 @@
+---
+icinga_valid_mounts: ["/", "/boot", "/boot/efi"]
+icinga_procs_warn: 250
+icinga_procs_crit: 400
