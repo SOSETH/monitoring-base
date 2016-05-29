@@ -63,6 +63,10 @@
     include: ipmi.yml
     when: ipmi_hosts is defined
 
+  - name: (smart) Include smart handler
+    include: smart.yml
+    when: skip_smart is not defined
+
   - name: Create icinga config files
     template: src={{item }}.j2 dest=/etc/icinga2/conf.d/{{item }} owner=root group=root mode=0644
     notify: restart icinga

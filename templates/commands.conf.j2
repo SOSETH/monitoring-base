@@ -78,3 +78,36 @@ object CheckCommand "ipmi" {
   vars.cfg_file = "/etc/icinga2/freeipmi.conf"
   vars.my_ipmi_ip = "$ipmi_ip$"
 }
+
+object CheckCommand "smart" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_smartvalues" ]
+
+  arguments = {
+    "-d" = {
+      value = "$my_device$"
+      description = "Device to check"
+      required = true
+    }
+    "-db" = {
+      value = "$db_file$"
+      description = "Path to smart database file"
+    }
+    "-c" = {
+      value = "$cfg_file$"
+      description = "Path to smart config file"
+    }
+    "-pd" = {
+      value = "-pd"
+      skip_key = true
+    }
+    "-s" = {
+      value = "-s"
+      skip_key = true
+    }
+  }
+
+  vars.cfg_file = "/etc/icinga2/check_smartvalues.cfg.json"
+  vars.db_file = "/etc/icinga2/check_smartvalues.db.json"
+  vars.my_device = "$device$"
+}
