@@ -2,3 +2,9 @@
 icinga_valid_mounts: ["/", "/boot", "/boot/efi"]
 icinga_procs_warn: 250
 icinga_procs_crit: 400
+icinga_iostat_tpsw: 500
+icinga_iostat_tpsc: 5000
+icinga_iostat_readw: 40000
+icinga_iostat_readc: 200000
+icinga_iostat_writew: 40000
+icinga_iostat_writec: 200000

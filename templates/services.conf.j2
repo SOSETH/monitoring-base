@@ -34,6 +34,12 @@ apply Service "{{ item }}" {
 
   check_command = "iostat"
   vars.iostat_disk = "{{ item | regex_replace('^iostat (.*)$', '\\1')}}"
+  vars.iostat_wtps = {{ icinga_iostat_tpsw }}
+  vars.iostat_ctps = {{ icinga_iostat_tpsc }}
+  vars.iostat_wread = {{ icinga_iostat_readw }}
+  vars.iostat_cread = {{ icinga_iostat_readc }}
+  vars.iostat_wwrite = {{ icinga_iostat_writew }}
+  vars.iostat_cwrite = {{ icinga_iostat_writec }}
 
   assign where host.name == NodeName
 }
