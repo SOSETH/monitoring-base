@@ -75,6 +75,7 @@ apply Service "{{ item }}" {
   assign where host.name == NodeName
 }
 {% endfor %}
+
 {% for item in icinga_checks|matching('ipmi .*')|list %}
 {% set item_name=item|regex_replace('^ipmi (.*)$', '\\1') %}
 apply Service "{{ item }}" {
@@ -83,6 +84,19 @@ apply Service "{{ item }}" {
   check_command = "ipmi"
 
   vars.ipmi_ip = "{{ (ipmi_hosts|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+  assign where host.name == "{{ item_name }}"
+}
+{% endfor %}
+
+{% for item in icinga_checks|matching('power .*')|list %}
+{% set item_name=item|regex_replace('^power (.*)$', '\\1') %}
+apply Service "{{ item }}" {
+  import "generic-service"
+
+  check_command = "power"
+
+  vars.ip = "{{ (power_strips|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+  vars.statefile = "/tmp/pwr_{{ item_name }}"
   assign where host.name == "{{ item_name }}"
 }
 {% endfor %}

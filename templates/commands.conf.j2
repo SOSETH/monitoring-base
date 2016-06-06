@@ -111,3 +111,30 @@ object CheckCommand "smart" {
   vars.db_file = "/etc/icinga2/check_smartvalues.db.json"
   vars.my_device = "$device$"
 }
+
+object CheckCommand "power" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_power.py" ]
+
+  arguments = {
+    "-h" = {
+      value = "$my_ip$"
+      description = "Device to check"
+      required = true
+      skip_key = true
+      order = 2
+    }
+    "-s" = {
+      value = "$my_statefile$"
+      description = "Path to state file for historical data"
+      required = true
+      order = 1
+    }
+    "--debug" = {
+      value = "--debug"
+      skip_key = true
+    }
+  }
+  vars.my_ip = "$ip$"
+  vars.my_statefile = "$statefile$"
+}

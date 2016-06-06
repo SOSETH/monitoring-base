@@ -63,6 +63,10 @@
     include: ipmi.yml
     when: ipmi_hosts is defined
 
+  - name: (power) Include powerstrip handler
+    include: power.yml
+    when: power_strips is defined
+
   - name: (smart) Include smart handler
     include: smart.yml
     when: skip_smart is not defined

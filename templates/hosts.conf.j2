@@ -41,3 +41,12 @@ object Host "{{ item_name }}" {
   address = "{{ (ipmi_hosts|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
 }
 {% endfor %}
+
+{% for item in icinga_checks|matching('power .*')|list %}
+{% set item_name=item|regex_replace('^power (.*)$', '\\1') %}
+// Dummy host for powerstrip
+object Host "{{ item_name }}" {
+  import "generic-host"
+  address = "{{ (power_strips|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+}
+{% endfor %}

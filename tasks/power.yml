@@ -1,0 +1,26 @@
+---
+  - name: (power) Install dependencies
+    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
+    with_items:
+      - python3-pip
+
+  - name: (power) Install pysnmp
+    pip: name=pysnmp executable=pip3
+
+  - name: (power) Install power check
+    copy: src="check_power.py" dest="/usr/lib/nagios/plugins/check_power.py" owner=root group=root mode=0755
+
+  - name: (power) Install power check mib (1/2)
+    file: path="/etc/icinga2/mibs" state=directory owner=nagios group=root mode=0755
+
+  - name: (power) Install power check mib (2/2)
+    copy: src="NETTRACK-E3METER-SNMP-MIB.py" dest="/etc/icinga2/mibs" owner=root group=root mode=0644
+
+  - name: (power) Detect power strips
+    set_fact:
+      power_item: "power {{ item }}"
+    with_items: "{{ power_strips|map(attribute='name')|list }}"
+    register: powerappend
+
+  - name: (power) Append detected mountpoints to list of checks
+    set_fact: icinga_checks="{{icinga_checks}} + {{ powerappend.results | map(attribute='ansible_facts.power_item') | list }}"
