@@ -22,5 +22,5 @@
     with_items: "{{ power_strips|map(attribute='name')|list }}"
     register: powerappend
 
-  - name: (power) Append detected mountpoints to list of checks
+  - name: (power) Append detected powerstrips to list of checks
     set_fact: icinga_checks="{{icinga_checks}} + {{ powerappend.results | map(attribute='ansible_facts.power_item') | list }}"
