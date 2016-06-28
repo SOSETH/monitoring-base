@@ -101,6 +101,31 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
+{% for item in icinga_checks|matching('infiniband .*')|list %}
+{% set item_name=item|regex_replace('^infiniband (.*)$', '\\1') %}
+apply Service "{{ item }}" {
+  import "generic-service"
+
+  check_command = "ib-host"
+
+  vars.host = "{{ (infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"
+  vars.netfile = "/etc/icinga2/ib-netfile.yml"
+
+  assign where host.name == "{{ item_name }}"
+}
+{% endfor %}
+
+{% for item in icinga_checks|matching('infiniband-net.*')|list %}
+apply Service "{{ item }}" {
+  import "generic-service"
+
+  check_command = "ib-net"
+  vars.netfile = "/etc/icinga2/ib-netfile.yml"
+
+  assign where host.name == NodeName
+}
+{% endfor %}
+
 apply Service "icinga" {
   import "generic-service"
 

@@ -67,6 +67,10 @@
     include: power.yml
     when: power_strips is defined
 
+  - name: (ib) Include infiniband handler
+    include: ib.yml
+    when: infiniband is defined
+
   - name: (smart) Include smart handler
     include: smart.yml
     when: skip_smart is not defined

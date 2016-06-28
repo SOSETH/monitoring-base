@@ -138,3 +138,45 @@ object CheckCommand "power" {
   vars.my_ip = "$ip$"
   vars.my_statefile = "$statefile$"
 }
+
+object CheckCommand "ib-host" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_ib" ]
+
+  arguments = {
+    "--check-host" = {
+      value = "$my_host$"
+      description = "Host to check"
+      required = true
+    }
+    "--netfile" = {
+      value = "$my_netfile$"
+      description = "Path to state file for historical data"
+      required = true
+    }
+    "--clear" = {
+      value = "--clear"
+      skip_key = true
+    }
+  }
+  vars.my_host = "$host$"
+  vars.my_netfile = "$netfile$"
+}
+
+object CheckCommand "ib-net" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_ib" ]
+
+  arguments = {
+    "--netfile" = {
+      value = "$my_netfile$"
+      description = "Path to state file for historical data"
+      required = true
+    }
+    "--check-net" = {
+      value = "--check-net"
+      skip_key = true
+    }
+  }
+  vars.my_netfile = "$netfile$"
+}
