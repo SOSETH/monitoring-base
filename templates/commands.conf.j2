@@ -79,7 +79,7 @@ object CheckCommand "ipmi" {
   vars.my_ipmi_ip = "$ipmi_ip$"
 }
 
-object CheckCommand "smart" {
+object CheckCommand "smartSOS" {
   import "plugin-check-command"
   command = [PluginDir + "/check_smartvalues" ]
 
