@@ -8,3 +8,9 @@ icinga_iostat_readw: 40000
 icinga_iostat_readc: 200000
 icinga_iostat_writew: 40000
 icinga_iostat_writec: 200000
+icinga_load_wload1: 10
+icinga_load_wload5: 8
+icinga_load_wload15: 5
+icinga_load_cload1: 15
+icinga_load_cload5: 12
+icinga_load_cload15: 10
