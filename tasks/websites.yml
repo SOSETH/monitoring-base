@@ -1,0 +1,18 @@
+---
+  - name: (http) Detect websites
+    set_fact:
+      http_item: "http {{ item }}"
+    with_items: "{{ websites|map(attribute='name')|list }}"
+    register: httpappend
+
+  - name: (http) Append detected websites to list of checks
+    set_fact: icinga_checks="{{icinga_checks}} + {{ httpappend.results | map(attribute='ansible_facts.http_item') | list }}"
+
+  - name: (https) Detect websites
+    set_fact:
+      https_item: "https {{ item }}"
+    with_items: "{{ websites|selectattr('ssl', 'equalto', 'true')|map(attribute='name')|list }}"
+    register: httpsappend
+
+  - name: (https) Append detected websites to list of checks
+    set_fact: icinga_checks="{{icinga_checks}} + {{ httpsappend.results | map(attribute='ansible_facts.https_item') | list }}"

@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=ceph
-Group=ceph
+Group=www-data
 WorkingDirectory=/opt/ceph-dash
 ExecStart=/usr/bin/python ceph-lodash.py
 PrivateTmp=true

@@ -39,12 +39,22 @@
     when: cservice.changed
     notify: restart ceph-dash
 
+  - name: (ceph) Ensure that ceph user exists
+    user: name=ceph group=www-data createhome=no shell=/bin/false
+
   - name: (ceph) Change permissions on ceph keyring so that the dashboard can access it
-    file: path=/etc/ceph/ceph.client.admin.keyring owner=root group=ceph mode=0640
+    file: path=/etc/ceph/ceph.client.admin.keyring owner=root group=www-data mode=0640
     notify: restart ceph-dash
 
   - name: (ceph) Install ceph check
     copy: src="check-ceph-dash.py" dest="/usr/lib/nagios/plugins/check-ceph-dash.py" owner=root group=root mode=0755
+
+  - name: (ceph) Configure ceph check
+    copy: src="ceph-dash-config.json" dest="/opt/ceph-dash/config.json" owner=ceph group=www-data mode=0644
+
+  - name: (ceph) Refresh ceph cluster config
+    shell: cat /etc/ceph/ceph.conf | sed 's/\/etc\/pve\/priv\/\$cluster\.\$name\.keyring/\/etc\/ceph\/ceph\.client\.admin\.keyring/g' > /opt/ceph-dash/ceph.conf && chown ceph:www-data /opt/ceph-dash/ceph.conf && chmod 0644 /opt/ceph-dash/ceph.conf
+    changed_when: False
 
   - name: (ceph) Append ceph to list of checks
     set_fact: icinga_checks="{{icinga_checks}} + ['ceph']"

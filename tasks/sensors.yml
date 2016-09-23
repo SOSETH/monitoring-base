@@ -1,0 +1,39 @@
+---
+  - name: (sensors) Install lm-sensors and check dependencies
+    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
+    with_items:
+      - libgetopt-long-descriptive-perl
+      - libnagios-plugin-perl
+      - liblist-moreutils-perl
+      - libreadonly-perl
+      - lm-sensors
+    register: lmsensors
+    when: ansible_distribution == 'Debian'
+
+  - name: (sensors) Install lm-sensors and check dependencies
+    pacman: name={{ item }} state=present
+    with_items:
+      - libnagios-plugin-perl
+      - perl-list-moreutils
+      - perl-readonly
+      - lm_sensors
+    register: lmsensors
+
+  - name: (sensors) Configure lm-sensors
+    command: sensors-detect --auto
+    when: lmsensors.changed
+
+  - name: (sensors) Install sensors check
+    copy: src=check_lm_sensors dest=/usr/lib/nagios/plugins/check_lm_sensors owner=root group=root mode=0755
+
+  - name: (sensors) Install sensor name remapping file
+    copy: src=sensors-ansible.conf dest=/etc/sensors.d/sensors-ansible.conf owner=root group=root mode=0644
+
+  - name: (sensors) Detect sensors
+    set_fact:
+      sensor_item: "sensors {{ item }}"
+    with_items: "{{ sensors|map(attribute='name')|list }}"
+    register: sensorsappend
+
+  - name: (sensors) Append detected sensors to list of checks
+    set_fact: icinga_checks="{{icinga_checks}} + {{ sensorsappend.results | map(attribute='ansible_facts.sensor_item') | list }}"

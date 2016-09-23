@@ -2,13 +2,16 @@
   - name: Add debmon repository
     apt_repository: repo='deb http://debmon.org/debmon debmon-jessie main' state=present
     register: repochanged
+    when: ansible_distribution == 'Debian'
 
   - name: Add debmon repository key
     apt_key: url=http://debmon.org/debmon/repo.key state=present
+    when: ansible_distribution == 'Debian'
 
   - name: Explicitly refresh apt cache
     apt: update_cache=yes
     when: repochanged.changed
+    when: ansible_distribution == 'Debian'
 
   - name: Install icinga
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
@@ -16,6 +19,7 @@
       - icinga2
       - sysstat
       - bc
+    when: ansible_distribution == 'Debian'
 
   - name: Enable default services
     set_fact:
@@ -74,6 +78,14 @@
   - name: (smart) Include smart handler
     include: smart.yml
     when: skip_smart is not defined
+
+  - name: (http) Include website handler
+    include: websites.yml
+    when: websites is defined
+
+  - name: (sensors) Include sensor handler
+    include: sensors.yml
+    when: sensors is defined
 
   - name: Create icinga config files
     template: src={{item }}.j2 dest=/etc/icinga2/conf.d/{{item }} owner=root group=root mode=0644

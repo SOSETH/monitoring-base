@@ -180,3 +180,20 @@ object CheckCommand "ib-net" {
   }
   vars.my_netfile = "$netfile$"
 }
+
+object CheckCommand "sensor" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_lm_sensors"]
+
+  arguments = {
+    "-h" = {
+      value = "$my_sensor$"
+      description = "Sensor to check"
+      required = true
+    }
+    "--nodrives" = {
+      value = "--nodrives"
+      skip_key = true
+    }
+  }
+}

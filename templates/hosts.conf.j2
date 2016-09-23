@@ -42,6 +42,15 @@ object Host "{{ item_name }}" {
 }
 {% endfor %}
 
+{% for item in icinga_checks|matching('http .*')|list %}
+{% set item_name=item|regex_replace('^http (.*)$', '\\1') %}
+// Dummy host for website
+object Host "{{ item_name }}" {
+  import "generic-host"
+  address = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='addr')|list)[0] }}"
+}
+{% endfor %}
+
 {% for item in icinga_checks|matching('power .*')|list %}
 {% set item_name=item|regex_replace('^power (.*)$', '\\1') %}
 // Dummy host for powerstrip
