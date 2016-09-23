@@ -18,6 +18,7 @@
       - perl-readonly
       - lm_sensors
     register: lmsensors
+    when: ansible_distribution == 'Archlinux'
 
   - name: (sensors) Configure lm-sensors
     command: sensors-detect --auto
