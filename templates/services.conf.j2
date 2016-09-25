@@ -141,6 +141,9 @@ apply Service "http {{ ansible_fqdn }}" {
   vars.http_ssl = "true"
   vars.http_sni = "true"
 {% endif %}
+{% if (websites|selectattr('name', 'equalto', item_name)|map(attribute='auth')|list)[0] == "true" %}
+  vars.http_auth_pair = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}"
+{% endif %}
   assign where host.name == "{{ item_name }}"
 }
 {% endfor %}
@@ -164,6 +167,7 @@ apply Service "{{ item }}" {
   import "generic-service"
 
   check_command = "ib-host"
+  check_interval = 30s
 
   vars.host = "{{ (infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"
   vars.netfile = "/etc/icinga2/ib-netfile.yml"
