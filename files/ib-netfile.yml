@@ -7,19 +7,21 @@ nodes:
     name: comp-2.sos.ethz.ch
   - guid: 0x0002c902002896d0
     name: comp-3.sos.ethz.ch
-  - guid: 0x0008f1040399124c
+  - guid: 0x0002c9030007ccc0
     name: ceph-a.sos.ethz.ch
     isSM: true
-  - guid: 0x0008f104039941a8
+  - guid: 0x0002c90300099196
     name: ceph-b.sos.ethz.ch
     isSM: true
-  - guid: 0x0008f10403991428
+  - guid: 0x0002c9030007ccc8
     name: ceph-c.sos.ethz.ch
     isSM: true
   - guid: 0x0008f1040041a7e6
     name: sw-ib-voltaire
   - guid: 0x000b8cffff005128
     name: sw-ib-mellanox
+  - guid: 0x0008f1040399124c
+    name: cm.sos.ethz.ch
 links:
   - from: mon.sos.ethz.ch
     to: sw-ib-voltaire
@@ -42,6 +44,8 @@ links:
   - from: ceph-a.sos.ethz.ch
     to: sw-ib-mellanox
   - from: ceph-b.sos.ethz.ch
+    to: sw-ib-voltaire
+  - from: cm.sos.ethz.ch
     to: sw-ib-voltaire
   - from: ceph-b.sos.ethz.ch
     to: sw-ib-mellanox
