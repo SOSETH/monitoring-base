@@ -168,7 +168,7 @@ apply Service "{{ item }}" {
   import "generic-service"
 
   check_command = "ib-host"
-  check_interval = 30s
+  check_interval = 20s
 
   vars.host = "{{ (infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"
   vars.netfile = "/etc/icinga2/ib-netfile.yml"
