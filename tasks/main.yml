@@ -1,11 +1,15 @@
 ---
+  - name: Disable IPv6 for APT since debmon has some issues with it
+    template: src=noipv6.j2 dest=/etc/apt/apt.conf.d/99-apt-ipv4-only owner=root group=root mode=0644
+    when: ansible_distribution == 'Debian'
+    
   - name: Add debmon repository
     apt_repository: repo='deb http://debmon.org/debmon debmon-jessie main' state=present
     register: repochanged
     when: ansible_distribution == 'Debian'
 
   - name: Add debmon repository key
-    apt_key: url=http://debmon.org/debmon/repo.key state=present
+    apt_key: data="{{ lookup('file', 'debmon.key') }}" state=present state=present
     when: ansible_distribution == 'Debian'
 
   - name: Explicitly refresh apt cache
