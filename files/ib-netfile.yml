@@ -16,9 +16,9 @@ nodes:
   - guid: 0x0002c9030007ccc8
     name: ceph-c.sos.ethz.ch
     isSM: true
-  - guid: 0x0008f1040041a7e6
+  - guid: 0x0008f1040041823c
     name: sw-ib-voltaire
-  - guid: 0x000b8cffff005128
+  - guid: 0x0008f1040041a7ac
     name: sw-ib-mellanox
   - guid: 0x0008f1040399124c
     name: cm.sos.ethz.ch

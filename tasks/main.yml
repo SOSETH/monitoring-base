@@ -2,7 +2,7 @@
   - name: Disable IPv6 for APT since debmon has some issues with it
     template: src=noipv6.j2 dest=/etc/apt/apt.conf.d/99-apt-ipv4-only owner=root group=root mode=0644
     when: ansible_distribution == 'Debian'
-
+    
   - name: Add debmon repository
     apt_repository: repo='deb http://debmon.org/debmon debmon-jessie main' state=present
     register: repochanged
@@ -14,9 +14,8 @@
 
   - name: Explicitly refresh apt cache
     apt: update_cache=yes
-    when:
-      - repochanged.changed
-      - ansible_distribution == 'Debian'
+    when: repochanged.changed
+    when: ansible_distribution == 'Debian'
 
   - name: Install icinga
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
@@ -70,27 +69,27 @@
 
   - name: (ipmi) Include ipmi handler
     include: ipmi.yml
-    when: ipmi_hosts != False
+    when: ipmi_hosts is defined
 
   - name: (power) Include powerstrip handler
     include: power.yml
-    when: power_strips != False
+    when: power_strips is defined
 
   - name: (ib) Include infiniband handler
     include: ib.yml
-    when: infiniband != False
+    when: infiniband is defined
 
   - name: (smart) Include smart handler
     include: smart.yml
-    when: not skip_smart
+    when: skip_smart is not defined
 
   - name: (http) Include website handler
     include: websites.yml
-    when: websites != False
+    when: websites is defined
 
   - name: (sensors) Include sensor handler
     include: sensors.yml
-    when: sensors != False
+    when: sensors is defined
 
   - name: Create icinga config files
     template: src={{item }}.j2 dest=/etc/icinga2/conf.d/{{item }} owner=root group=root mode=0644
@@ -99,6 +98,11 @@
       - services.conf
       - commands.conf
       - hosts.conf
+
+  - name: Kill redundant default config files
+    file: path={{item}} state=absent
+    with_items:
+      - /etc/icinga2/conf.d/apt.conf
 
   - name: Manually install a few checks from contrib
     copy: src="{{ item }}" dest="/usr/lib/nagios/plugins/{{ item }}" owner=root group=root mode=0755
