@@ -99,6 +99,11 @@
       - services.conf
       - commands.conf
       - hosts.conf
+      
+  - name: Kill redundant default config files
+    file: path={{item}} state=absent
+    with_items:
+      - /etc/icinga2/conf.d/apt.conf
 
   - name: Manually install a few checks from contrib
     copy: src="{{ item }}" dest="/usr/lib/nagios/plugins/{{ item }}" owner=root group=root mode=0755
