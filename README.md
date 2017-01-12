@@ -32,3 +32,7 @@ Checks configured manually:
   * t: how often should we check, e.g. 5m
   * Example for SSL: `{"name": "cloud.njsm.de", "ssl": "true", "addr": "85.25.143.246", "ssldays": "30", "minsize": "10000", t: 5m}`
   * Example for non-SSL: {"name": "www.whatever.de", "minsize": "1000", "addr": "123.456.789.123", "t": 1m, "ssl": "false"}
+ * ups: This check is enabled when apcupsd is detected, but you need to manually install and configure apcupsd on the machine
+ * swport: Check switchports via SNMP, tested on a duo of Cisco SG350X's, your mileage may vary. This check takes an array of dicts:
+  * ip: IP of the Switch(stack)
+  * if: Interface to check as named in SNMP, e.g. TengigabitEthernet1/0/1$
