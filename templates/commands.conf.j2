@@ -197,3 +197,65 @@ object CheckCommand "sensor" {
     }
   }
 }
+
+object CheckCommand "apcupsd" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_apcupsd.sh"]
+
+  arguments = {
+    "-w" = {
+      value = "$warning$"
+      description = "warning threshold"
+      required = true
+    }
+    "-c" = {
+      value = "$crit$"
+      description = "critical threshold"
+      required = true
+    }
+    "-what" = {
+      value = "$check$"
+      skip_key = true
+    }
+  }
+}
+
+object CheckCommand "snmpif" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_snmp_int.pl" ]
+
+  arguments = {
+    "-H" = {
+      value = "$my_ip$"
+      description = "IP of the IPMI to check"
+      required = true
+    }
+    "-2" = {
+      value = "-2"
+      skip_key = true
+    }
+    "-C" = {
+      value = "$community$"
+    }
+    "-e" = {
+      value = "-e"
+      skip_key = true
+    }
+    "-f" = {
+      value = "-f"
+      skip_key = true
+    }
+    "-g" = {
+      value = "-g"
+      skip_key = true
+    }
+    "-n" = {
+      value = "$my_if$"
+      description = "Interface(s) to check"
+    }
+  }
+
+  vars.community = "private"
+  vars.my_ip = "$ip$"
+  vars.my_if = "$interface$"
+}
