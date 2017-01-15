@@ -40,7 +40,7 @@
     notify: restart ceph-dash
 
   - name: (ceph) Ensure that ceph user exists
-    user: name=ceph group=www-data createhome=no shell=/bin/false
+    user: name=ceph groups=www-data createhome=no append=yes shell=/bin/false
 
   - name: (ceph) Change permissions on ceph keyring so that the dashboard can access it
     file: path=/etc/ceph/ceph.client.admin.keyring owner=root group=www-data mode=0640

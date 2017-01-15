@@ -69,23 +69,23 @@
 
   - name: (ipmi) Include ipmi handler
     include: ipmi.yml
-    when: ipmi_hosts is defined
+    when: ipmi_hosts != False
 
   - name: (power) Include powerstrip handler
     include: power.yml
-    when: power_strips is defined
+    when: power_strips != False
 
   - name: (ib) Include infiniband handler
     include: ib.yml
-    when: infiniband is defined
+    when: infiniband != False
 
   - name: (smart) Include smart handler
     include: smart.yml
-    when: skip_smart is not defined
+    when: skip_smart != False
 
   - name: (http) Include website handler
     include: websites.yml
-    when: websites is defined
+    when: websites != False
 
   - name: (sensors) Include sensor handler
     include: sensors.yml
