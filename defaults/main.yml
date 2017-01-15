@@ -23,3 +23,4 @@ skip_smart: False
 websites: False
 sensors: False
 apt_enabled: False
+swport: False

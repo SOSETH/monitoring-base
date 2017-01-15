@@ -89,7 +89,20 @@
 
   - name: (sensors) Include sensor handler
     include: sensors.yml
-    when: sensors is defined
+    when: sensors != False
+    
+  - name: (ups) Check for apcupsd
+    stat: path=/etc/default/apcupsd
+    register: ups
+    changed_when: False
+
+  - name: (ups) Include ups handler
+    include: ups.yml
+    when: ups.stat.exists
+    
+  - name: (swport) Include switch port handler
+    include: swport.yml
+    when: swport != False
 
   - name: Create icinga config files
     template: src={{item }}.j2 dest=/etc/icinga2/conf.d/{{item }} owner=root group=root mode=0644
@@ -98,6 +111,11 @@
       - services.conf
       - commands.conf
       - hosts.conf
+      
+  - name: Kill redundant default config files
+    file: path={{item}} state=absent
+    with_items:
+      - /etc/icinga2/conf.d/apt.conf
 
   - name: Kill redundant default config files
     file: path={{item}} state=absent
