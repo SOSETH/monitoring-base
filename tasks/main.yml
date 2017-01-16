@@ -15,7 +15,6 @@
   - name: Explicitly refresh apt cache
     apt: update_cache=yes
     when: repochanged.changed
-    when: ansible_distribution == 'Debian'
 
   - name: Install icinga
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
@@ -81,7 +80,7 @@
 
   - name: (smart) Include smart handler
     include: smart.yml
-    when: skip_smart != False
+    when: skip_smart == False
 
   - name: (http) Include website handler
     include: websites.yml
