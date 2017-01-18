@@ -142,6 +142,7 @@ apply Service "https {{ ansible_fqdn }}" {
   vars.http_certificate = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='ssldays')|list)[0] }}"
   vars.http_ssl = "true"
   vars.http_sni = "true"
+  vars.http_certificate = "10"
 
   assign where host.name == "{{ item_name }}"
   vars.notify = true
@@ -169,7 +170,6 @@ apply Service "http {{ ansible_fqdn }}" {
 {% if (websites|selectattr('name', 'equalto', item_name)|map(attribute='auth')|list)[0] == "true" %}
   vars.http_auth_pair = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}"
 {% endif %}
-  vars.http_certificate = "10"
   assign where host.name == "{{ item_name }}"
   vars.notify = true
   vars.datgroup = "http"
