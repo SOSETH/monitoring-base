@@ -2,7 +2,7 @@
   - name: Disable IPv6 for APT since debmon has some issues with it
     template: src=noipv6.j2 dest=/etc/apt/apt.conf.d/99-apt-ipv4-only owner=root group=root mode=0644
     when: ansible_distribution == 'Debian'
-
+    
   - name: Add debmon repository
     apt_repository: repo='deb http://debmon.org/debmon debmon-jessie main' state=present
     register: repochanged
@@ -14,9 +14,7 @@
 
   - name: Explicitly refresh apt cache
     apt: update_cache=yes
-    when:
-      - repochanged.changed
-      - ansible_distribution == 'Debian'
+    when: repochanged.changed
 
   - name: Install icinga
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
@@ -82,7 +80,7 @@
 
   - name: (smart) Include smart handler
     include: smart.yml
-    when: not skip_smart
+    when: skip_smart == False
 
   - name: (http) Include website handler
     include: websites.yml
@@ -113,6 +111,11 @@
       - commands.conf
       - hosts.conf
       
+  - name: Kill redundant default config files
+    file: path={{item}} state=absent
+    with_items:
+      - /etc/icinga2/conf.d/apt.conf
+
   - name: Kill redundant default config files
     file: path={{item}} state=absent
     with_items:

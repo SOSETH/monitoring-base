@@ -26,6 +26,8 @@ apply Service "{{ item }}" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "disk"
+  vars.datitem = "local"
 }
 {% endfor %}
 
@@ -44,6 +46,8 @@ apply Service "{{ item }}" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "iostat"
+  vars.datitem = "local"
 }
 {% endfor %}
 
@@ -56,6 +60,8 @@ apply Service "{{ item }}" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "smart"
+  vars.datitem = "{{ item | regex_replace('^smart (.*)$', '\\1')}}"
 }
 {% endfor %}
 
@@ -69,6 +75,8 @@ apply Service "{{ item }}" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "sensors"
+  vars.datitem = "local"
 }
 {% endfor %}
 
@@ -80,6 +88,8 @@ apply Service "{{ item }}" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "raid"
+  vars.datitem = "local"
 }
 {% endfor %}
 
@@ -92,6 +102,8 @@ apply Service "{{ item }}" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "ceph"
+  vars.datitem = "{{ansible_fqdn}}"
 }
 {% endfor %}
 
@@ -105,6 +117,8 @@ apply Service "{{ item }}" {
   vars.ipmi_ip = "{{ (ipmi_hosts|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
   assign where host.name == "{{ item_name }}"
   vars.notify = true
+  vars.datgroup = "ipmi"
+  vars.datitem = "{{ansible_fqdn}}"
 }
 {% endfor %}
 
@@ -128,9 +142,12 @@ apply Service "https {{ ansible_fqdn }}" {
   vars.http_certificate = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='ssldays')|list)[0] }}"
   vars.http_ssl = "true"
   vars.http_sni = "true"
+  vars.http_certificate = "10"
 
   assign where host.name == "{{ item_name }}"
   vars.notify = true
+  vars.datgroup = "http"
+  vars.datitem = "{{ansible_fqdn}}"
 }
 {% endfor %}
 
@@ -155,6 +172,8 @@ apply Service "http {{ ansible_fqdn }}" {
 {% endif %}
   assign where host.name == "{{ item_name }}"
   vars.notify = true
+  vars.datgroup = "http"
+  vars.datitem = "{{ansible_fqdn}}"
 }
 {% endfor %}
 
@@ -169,6 +188,8 @@ apply Service "{{ item }}" {
   vars.statefile = "/tmp/pwr_{{ item_name }}"
   assign where host.name == "{{ item_name }}"
   vars.notify = true
+  vars.datgroup = "power"
+  vars.datitem = "{{ansible_fqdn}}"
 }
 {% endfor %}
 
@@ -185,6 +206,8 @@ apply Service "{{ item }}" {
 
   assign where host.name == "{{ item_name }}"
   vars.notify = true
+  vars.datgroup = "ib-host"
+  vars.datitem = "{{ansible_fqdn}}"
 }
 {% endfor %}
 
@@ -197,6 +220,8 @@ apply Service "{{ item }}" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "ib-net"
+  vars.datitem = "{{ansible_fqdn}}"
 }
 {% endfor %}
 
@@ -207,6 +232,8 @@ apply Service "icinga" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "icinga"
+  vars.datitem = "local"
 }
 
 apply Service "procs" {
@@ -218,6 +245,8 @@ apply Service "procs" {
   vars.procs_critical = "{{ icinga_procs_crit }}"
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "procs"
+  vars.datitem = "local"
 }
 
 apply Service "users" {
@@ -227,6 +256,8 @@ apply Service "users" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "users"
+  vars.datitem = "local"
 }
 
 apply Service "mem" {
@@ -240,6 +271,8 @@ apply Service "mem" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "mem"
+  vars.datitem = "local"
 }
 
 apply Service "load" {
@@ -257,6 +290,8 @@ apply Service "load" {
 
   assign where host.name == NodeName
   vars.notify = true
+  vars.datgroup = "load"
+  vars.datitem = "local"
 }
 
 {% for item in icinga_checks|matching('apt') %}
@@ -271,6 +306,8 @@ apply Service "{{ item }}" {
   {% else %}
     vars.notify = false
   {% endif %}
+  vars.datgroup = "apt"
+  vars.datitem = "local"
 }
 {% endfor %}
 
@@ -284,6 +321,8 @@ apply Service "{{ item|replace("$", "") }}" {
   vars.ip = "{{ (swport|selectattr('if', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
   vars.interface = "{{ item_name|replace("$", "$$") }}"
   assign where host.name == NodeName
+  vars.datgroup = "snmpif"
+  vars.datitem = "local"
 }
 {% endfor %}
 
@@ -295,6 +334,8 @@ apply Service "ups status" {
   vars.warning = "0"
   vars.crit = "1"
   vars.check = "status"
+  vars.datgroup = "ups"
+  vars.datitem = "local"
 
   assign where host.name == NodeName
 }
@@ -305,6 +346,8 @@ apply Service "ups battery" {
   vars.warning = "80"
   vars.crit = "50"
   vars.check = "bcharge"
+  vars.datgroup = "ups"
+  vars.datitem = "local"
 
   assign where host.name == NodeName
 }
@@ -315,6 +358,8 @@ apply Service "ups temp" {
   vars.warning = "50"
   vars.crit = "60"
   vars.check = "itemp"
+  vars.datgroup = "ups"
+  vars.datitem = "local"
 
   assign where host.name == NodeName
 }
@@ -325,6 +370,8 @@ apply Service "ups load" {
   vars.warning = "70"
   vars.crit = "90"
   vars.check = "loadpct"
+  vars.datgroup = "ups"
+  vars.datitem = "local"
 
   assign where host.name == NodeName
 }
@@ -335,6 +382,8 @@ apply Service "ups time" {
   vars.warning = "10"
   vars.crit = "5"
   vars.check = "timeleft"
+  vars.datgroup = "ups"
+  vars.datitem = "local"
 
   assign where host.name == NodeName
 }

@@ -1,5 +1,5 @@
 ---
-icinga_valid_mounts: ["/", "/boot", "/boot/efi"]
+icinga_valid_mounts: ["/", "/boot", "/boot/efi", "/var/lib/influxdb", "/var/lib/elasticsearch"]
 icinga_procs_warn: 250
 icinga_procs_crit: 400
 icinga_iostat_tpsw: 500
