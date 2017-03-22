@@ -1,0 +1,32 @@
+---
+  - name: (sas-smart) Install smart check
+    copy: src="check_sas_smart" dest="/usr/lib/nagios/plugins/check_sas_smart" owner=root group=root mode=0755
+
+  - name: (sas-smart) Match installed HDDs/SSDs against database
+    shell: /usr/lib/nagios/plugins/check_sas_smart -c /dev/{{ item }} > /dev/null && (echo "/dev/{{ item }}" >> /tmp/disks)
+    with_items: "{{ ansible_devices|keys|list }}"
+    changed_when: False
+    failed_when: False
+
+  - name: (sas-smart) Check if we detected any disks
+    stat: path=/tmp/disks
+    register: diskstat
+
+  - name: (sas-smart) Load detection result
+    shell: cat /tmp/disks
+    register: disks
+    when: diskstat.stat.exists
+
+  - name: (sas-smart) Detect disks
+    set_fact:
+      smart_item: "sas {{ item }}"
+    with_items: "{{ disks.stdout_lines|default([]) }}"
+    when: diskstat.stat.exists
+    register: smartappend
+
+  - name: (sas-smart) Remove tempfile
+    file: path=/tmp/disks state=absent
+
+  - name: (sas-smart) Append detected disks to list of checks
+    set_fact: icinga_checks="{{icinga_checks}} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list }}"
+    when: diskstat.stat.exists

@@ -112,6 +112,22 @@ object CheckCommand "smartSOS" {
   vars.my_device = "$device$"
 }
 
+object CheckCommand "sasSOS" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_sas_smart" ]
+
+  arguments = {
+    "-d" = {
+      value = "$my_device$"
+      description = "Device to check"
+      required = true
+      skip_key = true
+    }
+  }
+  
+  vars.my_device = "$device$"
+}
+
 object CheckCommand "power" {
   import "plugin-check-command"
   command = [PluginDir + "/check_power.py" ]
