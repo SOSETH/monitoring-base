@@ -27,6 +27,10 @@
   - name: Enable default services
     set_fact:
       icinga_checks: ["apt", "icinga", "load", "mem", "procs", "users"]
+      
+  - name: Initialize list of hosts
+    local_action: file path='/tmp/icinga_hosts_found{{item}}.pickle' state=absent
+    with_items: "{{ groups['all'] }}"
 
   - name: (mdadm) Detect mdadm raids
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
@@ -138,3 +142,6 @@
 
   - name: Save list of enabled checks
     copy: content={{ icinga_checks }} dest=/etc/ansible/facts.d/icinga_checks.fact
+  
+  - name: Save list of detected hosts
+    copy: content={{ icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) }} dest=/etc/ansible/facts.d/icinga_hosts_found.fact
