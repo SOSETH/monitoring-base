@@ -2,14 +2,14 @@
   - name: Disable IPv6 for APT since debmon has some issues with it
     template: src=noipv6.j2 dest=/etc/apt/apt.conf.d/99-apt-ipv4-only owner=root group=root mode=0644
     when: ansible_distribution == 'Debian'
-    
-  - name: Add debmon repository
-    apt_repository: repo='deb http://debmon.org/debmon debmon-jessie main' state=present
-    register: repochanged
-    when: ansible_distribution == 'Debian'
-
+ 
   - name: Add debmon repository key
     apt_key: data="{{ lookup('file', 'debmon.key') }}" state=present state=present
+    when: ansible_distribution == 'Debian'
+
+  - name: Add debmon repository
+    apt_repository: repo='deb http://debmon.org/debmon debmon-{{ ansible_distribution_release }} main' state=present
+    register: repochanged
     when: ansible_distribution == 'Debian'
 
   - name: Explicitly refresh apt cache
@@ -27,10 +27,11 @@
   - name: Enable default services
     set_fact:
       icinga_checks: ["apt", "icinga", "load", "mem", "procs", "users"]
-      
-  - name: Initialize list of hosts
-    local_action: file path='/tmp/icinga_hosts_found{{item}}.pickle' state=absent
-    with_items: "{{ groups['all'] }}"
+
+  - name: Add debmon repository
+    apt_repository: repo='deb http://debmon.org/debmon debmon-{{ ansible_distribution_release }} main' state=present
+    register: repochanged
+    when: ansible_distribution == 'Debian'
 
   - name: (mdadm) Detect mdadm raids
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
@@ -85,7 +86,7 @@
   - name: (smart) Include smart handler
     include: smart.yml
     when: skip_smart == False
-    
+
   - name: (sas) Include sas smart handler
     include: sas.yml
     when: skip_smart == False
@@ -97,7 +98,7 @@
   - name: (sensors) Include sensor handler
     include: sensors.yml
     when: sensors != False
-    
+
   - name: (ups) Check for apcupsd
     stat: path=/etc/default/apcupsd
     register: ups
@@ -106,7 +107,7 @@
   - name: (ups) Include ups handler
     include: ups.yml
     when: ups.stat.exists
-    
+
   - name: (swport) Include switch port handler
     include: swport.yml
     when: swport != False
@@ -118,7 +119,7 @@
       - services.conf
       - commands.conf
       - hosts.conf
-      
+
   - name: Kill redundant default config files
     file: path={{item}} state=absent
     with_items:
@@ -142,6 +143,6 @@
 
   - name: Save list of enabled checks
     copy: content={{ icinga_checks }} dest=/etc/ansible/facts.d/icinga_checks.fact
-  
+
   - name: Save list of detected hosts
     copy: content={{ icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) }} dest=/etc/ansible/facts.d/icinga_hosts_found.fact
