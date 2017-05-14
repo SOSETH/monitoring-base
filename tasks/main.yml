@@ -28,10 +28,9 @@
     set_fact:
       icinga_checks: ["apt", "icinga", "load", "mem", "procs", "users"]
 
-  - name: Add debmon repository
-    apt_repository: repo='deb http://debmon.org/debmon debmon-{{ ansible_distribution_release }} main' state=present
-    register: repochanged
-    when: ansible_distribution == 'Debian'
+  - name: Initialize list of hosts
+    local_action: file path='/tmp/icinga_hosts_found{{item}}.pickle' state=absent
+    with_items: "{{ groups['all'] }}"
 
   - name: (mdadm) Detect mdadm raids
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
