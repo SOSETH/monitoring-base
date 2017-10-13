@@ -1,0 +1,22 @@
+{% if mon_enable_syslog_forwarding %}
+frontend rsyslog-front
+	bind 127.0.0.1:601
+	mode tcp
+	default_backend rsyslog-back
+
+backend rsyslog-back
+	mode tcp
+{% for item in mon_syslog_servers %}
+	server remote {{ item }}:6514 ssl crt /etc/haproxy/ls-c-full.pem ca-file /etc/haproxy/ls-ca.crt verify required check
+{% endfor %}
+{% endif %}
+{% if mon_enable_prometheus %}
+frontend pnexp-front
+	bind 0.0.0.0:9101 ssl crt /etc/haproxy/pm-c-full.pem ca-file /etc/haproxy/pm-ca.crt verify required
+	mode tcp
+	default_backend pnexp-back
+
+backend pnexp-back
+	mode tcp
+	server local 127.0.0.1:9100
+{% endif %}

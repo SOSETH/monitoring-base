@@ -1,21 +1,24 @@
 ---
   - name: (ipmi) Install dependencies
+    become: True
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
     with_items:
       - libipc-run-perl
       - freeipmi
 
   - name: (ipmi) Save credentials
+    become: True
     copy: src=ipmi.cfg dest=/etc/icinga2/freeipmi.conf owner=root group=nagios mode=0640
 
   - name: (ipmi) Install ipmi check
+    become: True
     copy: src="check_ipmi_sensor" dest="/usr/lib/nagios/plugins/check_ipmi_sensor" owner=root group=root mode=0755
 
   - name: (ipmi) Detect IPMIs
     set_fact:
       ipmi_item: "ipmi {{ item }}"
-    with_items: "{{ ipmi_hosts|map(attribute='name')|list }}"
+    with_items: "{{ mon_check_ipmi_hosts|map(attribute='name')|list }}"
     register: ipmiappend
 
   - name: (ipmi) Append detected mountpoints to list of checks
-    set_fact: icinga_checks="{{icinga_checks}} + {{ ipmiappend.results | map(attribute='ansible_facts.ipmi_item') | list }}"
+    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ ipmiappend.results | map(attribute='ansible_facts.ipmi_item') | list }}"

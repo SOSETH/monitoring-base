@@ -1,17 +1,19 @@
 ---
   - name: (swport) Install perl snmp moodule
+    become: True
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
     with_items:
       - libnet-snmp-perl
 
   - name: (swport) Install custom snmp check
+    become: True
     copy: src=check_snmp_int.pl dest=/usr/lib/nagios/plugins/check_snmp_int.pl owner=root group=root mode=0755
 
   - name: (swport) Detect switch ports
     set_fact:
       swport_item: "swport {{ item }}"
-    with_items: "{{ swport|map(attribute='if')|list }}"
+    with_items: "{{ mon_check_swport|map(attribute='if')|list }}"
     register: swportappend
 
   - name: (swport) Append detected swport to list of checks
-    set_fact: icinga_checks="{{icinga_checks}} + {{ swportappend.results | map(attribute='ansible_facts.swport_item') | list }}"
+    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ swportappend.results | map(attribute='ansible_facts.swport_item') | list }}"

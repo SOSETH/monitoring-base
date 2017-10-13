@@ -1,5 +1,6 @@
 ---
   - name: (smart) Install dependencies
+    become: True
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
     with_items:
       - libswitch-perl
@@ -11,31 +12,38 @@
       - smartmontools
 
   - name: (smart) Install smart check
+    become: True
     copy: src="check_smartvalues" dest="/usr/lib/nagios/plugins/check_smartvalues" owner=root group=root mode=0755
 
   - name: (smart) Install smart check config and db
+    become: True
     copy: src="{{ item }}" dest="/etc/icinga2/{{ item }}" owner=root group=nagios mode=0644
     with_items:
       - check_smartvalues.cfg.json
       - check_smartvalues.db.json
 
   - name: (smart) Allow user nagios to execute smartctl with sudo
+    become: True
     lineinfile: "dest=/etc/sudoers state=present regexp='^nagios' line='nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl'"
 
   - name: (smart) Remove tempfile
+    become: True
     file: path=/tmp/disks state=absent
 
   - name: (smart) Match installed HDDs/SSDs against database
+    become: True
     shell: /usr/lib/nagios/plugins/check_smartvalues -db /etc/icinga2/check_smartvalues.db.json -c /etc/icinga2/check_smartvalues.cfg.json -pd -d /dev/{{ item }} | head -n1 | grep -P "^UNKNOWN" || (echo "/dev/{{ item }}" >> /tmp/disks)
     with_items: "{{ ansible_devices|keys|list }}"
     changed_when: False
     failed_when: False
 
   - name: (smart) Check if we detected any disks
+    become: True
     stat: path=/tmp/disks
     register: diskstat
 
   - name: (smart) Load detection result
+    become: True
     shell: cat /tmp/disks
     register: disks
     when: diskstat.stat.exists
@@ -48,8 +56,9 @@
     register: smartappend
     
   - name: (smart) Remove tempfile
+    become: True
     file: path=/tmp/disks state=absent
 
   - name: (smart) Append detected disks to list of checks
-    set_fact: icinga_checks="{{icinga_checks}} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list }}"
+    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list }}"
     when: diskstat.stat.exists

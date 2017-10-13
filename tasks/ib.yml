@@ -1,5 +1,6 @@
 ---
   - name: (ib) Install dependencies
+    become: True
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
     with_items:
       - libibnetdisc5
@@ -10,16 +11,18 @@
       - libibumad3
 
   - name: (ib) Install infiniband check
+    become: True
     copy: src="check_ib" dest="/usr/lib/nagios/plugins/check_ib" owner=root group=root mode=4755
 
   - name: (ib) Install infiniband check netfile
+    become: True
     copy: src="ib-netfile.yml" dest="/etc/icinga2/ib-netfile.yml" owner=root group=root mode=0644
 
   - name: (ib) Detect infiniband hosts
     set_fact:
       ib_item: "infiniband {{ item }}"
-    with_items: "{{ infiniband|map(attribute='name')|list }}"
+    with_items: "{{ mon_check_infiniband|map(attribute='name')|list }}"
     register: ibappend
 
   - name: (ib) Append detected infiniband hosts to list of checks
-    set_fact: icinga_checks="{{icinga_checks}} + {{ ibappend.results | map(attribute='ansible_facts.ib_item') | list }} + ['ib-net']"
+    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ ibappend.results | map(attribute='ansible_facts.ib_item') | list }} + ['ib-net']"

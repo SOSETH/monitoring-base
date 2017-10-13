@@ -1,3 +1,20 @@
 ---
   - name: restart icinga
+    become: True
     service: name=icinga2 enabled=yes state=restarted
+
+  - name: restart sysstat
+    become: True
+    service: name=sysstat enabled=yes state=restarted
+
+  - name: restart prometheus nexp
+    become: True
+    service: name=prometheus-node-exporter enabled=yes state=restarted
+
+  - name: restart haproxy
+    become: True
+    service: name=haproxy enabled=yes state=restarted
+
+  - name: restart syslog
+    become: True
+    service: name=rsyslog enabled=yes state=restarted

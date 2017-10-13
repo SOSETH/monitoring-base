@@ -33,7 +33,7 @@ object Host NodeName {
   }
 }
 
-{% for item in icinga_checks|matching('ipmi .*')|list %}
+{% for item in mon_icinga_checks|matching('ipmi .*')|list %}
 {% set item_name=item|regex_replace('^ipmi (.*)$', '\\1') %}
 {% if item_name not in icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) %}
 {% set icinga_hosts_found=icinga_hosts_found|append(item_name, 'icinga_hosts_found'+ansible_fqdn) %}
@@ -68,14 +68,14 @@ object Host "{{ item_name }}" {
 // Dummy host for IPMI
 object Host "{{ item_name }}" {
   import "generic-host"
-  address = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+  address = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
 }
 {% endif %}
 
 {% endif %}
 {% endfor %}
 
-{% for item in icinga_checks|matching('http .*')|list %}
+{% for item in mon_icinga_checks|matching('http .*')|list %}
 {% set item_name=item|regex_replace('^http (.*)$', '\\1') %}
 {% if item_name not in icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) %}
 {% set icinga_hosts_found=icinga_hosts_found|append(item_name, 'icinga_hosts_found'+ansible_fqdn) %}
@@ -110,14 +110,14 @@ object Host "{{ item_name }}" {
 // Dummy host for website
 object Host "{{ item_name }}" {
   import "generic-host"
-  address = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='addr')|list)[0] }}"
+  address = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='addr')|list)[0] }}"
 }
 {% endif %}
 
 {% endif %}
 {% endfor %}
 
-{% for item in icinga_checks|matching('power .*')|list %}
+{% for item in mon_icinga_checks|matching('power .*')|list %}
 {% set item_name=item|regex_replace('^power (.*)$', '\\1') %}
 {% if item_name not in icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) %}
 {% if icinga_hosts_found.update(icinga_hosts_found|append(item_name, 'icinga_hosts_found'+ansible_fqdn)) %} {% endif %}
@@ -152,7 +152,7 @@ object Host "{{ hostvars[item_name]['ansible_fqdn'] }}" {
 // Dummy host for powerstrip
 object Host "{{ item_name }}" {
   import "generic-host"
-  address = "{{ (power_strips|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+  address = "{{ (mon_check_power_strips|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
 }
 {% endif %}
 

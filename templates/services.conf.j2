@@ -16,7 +16,7 @@
  * constant in `constants.conf` or use your
  * own description, e.g. "db-host-1".
  */
-{% for item in icinga_checks|matching('disk .*') %}
+{% for item in mon_icinga_checks|matching('disk .*') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
@@ -31,18 +31,18 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('iostat .*') %}
+{% for item in mon_icinga_checks|matching('iostat .*') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
   check_command = "iostat"
   vars.iostat_disk = "{{ item | regex_replace('^iostat (.*)$', '\\1')}}"
-  vars.iostat_wtps = {{ icinga_iostat_tpsw }}
-  vars.iostat_ctps = {{ icinga_iostat_tpsc }}
-  vars.iostat_wread = {{ icinga_iostat_readw }}
-  vars.iostat_cread = {{ icinga_iostat_readc }}
-  vars.iostat_wwrite = {{ icinga_iostat_writew }}
-  vars.iostat_cwrite = {{ icinga_iostat_writec }}
+  vars.iostat_wtps = {{ mon_icinga_iostat_tpsw }}
+  vars.iostat_ctps = {{ mon_icinga_iostat_tpsc }}
+  vars.iostat_wread = {{ mon_icinga_iostat_readw }}
+  vars.iostat_cread = {{ mon_icinga_iostat_readc }}
+  vars.iostat_wwrite = {{ mon_icinga_iostat_writew }}
+  vars.iostat_cwrite = {{ mon_icinga_iostat_writec }}
 
   assign where host.name == NodeName
   vars.notify = true
@@ -51,7 +51,7 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('smart .*') %}
+{% for item in mon_icinga_checks|matching('smart .*') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
@@ -65,7 +65,7 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('sas .*') %}
+{% for item in mon_icinga_checks|matching('sas .*') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
@@ -79,13 +79,13 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('sensors .*') %}
+{% for item in mon_icinga_checks|matching('sensors .*') %}
 {% set item_name=item|regex_replace('^sensors (.*)$', '\\1') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
   check_command = "sensor"
-  vars.my_sensor = "{{ (sensors|selectattr('name', 'equalto', item_name)|map(attribute='sensor')|list)[0] }}"
+  vars.my_sensor = "{{ (mon_check_sensors|selectattr('name', 'equalto', item_name)|map(attribute='sensor')|list)[0] }}"
 
   assign where host.name == NodeName
   vars.notify = true
@@ -94,7 +94,7 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('raid') %}
+{% for item in mon_icinga_checks|matching('raid') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
@@ -107,7 +107,7 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('ceph') %}
+{% for item in mon_icinga_checks|matching('ceph') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
@@ -121,14 +121,14 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('ipmi .*')|list %}
+{% for item in mon_icinga_checks|matching('ipmi .*')|list %}
 {% set item_name=item|regex_replace('^ipmi (.*)$', '\\1') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
   check_command = "ipmi"
 
-  vars.ipmi_ip = "{{ (ipmi_hosts|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+  vars.ipmi_ip = "{{ (mon_check_ipmi_hosts|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
   assign where host.name == "{{ item_name }}"
   vars.notify = true
   vars.datgroup = "ipmi"
@@ -136,7 +136,7 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('https .*')|list %}
+{% for item in mon_icinga_checks|matching('https .*')|list %}
 {% set item_name=item|regex_replace('^https (.*)$', '\\1') %}
 /* The check_http check is from the Nagios era, aka when people didn't yet
  * have nice things. It still carries the spirit of it's time and has the
@@ -149,11 +149,11 @@ apply Service "https {{ ansible_fqdn }}" {
   check_command = "http"
   check_interval = 1h
 
-  vars.http_pagesize = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='minsize')|list)[0] }}"
+  vars.http_pagesize = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='minsize')|list)[0] }}"
   vars.http_vhost = "{{ item_name }}"
   vars.http_extendedperfdata = "true"
   vars.http_onredirect = "follow"
-  vars.http_certificate = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='ssldays')|list)[0] }}"
+  vars.http_certificate = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='ssldays')|list)[0] }}"
   vars.http_ssl = "true"
   vars.http_sni = "true"
   vars.http_certificate = "10"
@@ -165,15 +165,15 @@ apply Service "https {{ ansible_fqdn }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('http .*')|list %}
+{% for item in mon_icinga_checks|matching('http .*')|list %}
 {% set item_name=item|regex_replace('^http (.*)$', '\\1') %}
 apply Service "http {{ ansible_fqdn }}" {
   import "generic-service"
 
   check_command = "http"
-  check_interval = {{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='t')|list)[0] }}
+  check_interval = {{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='t')|list)[0] }}
 
-  vars.http_pagesize = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='minsize')|list)[0] }}"
+  vars.http_pagesize = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='minsize')|list)[0] }}"
   vars.http_vhost = "{{ item_name }}"
   vars.http_extendedperfdata = "true"
   vars.http_onredirect = "follow"
@@ -182,7 +182,7 @@ apply Service "http {{ ansible_fqdn }}" {
   vars.http_sni = "true"
 {% endif %}
 {% if (websites|selectattr('name', 'equalto', item_name)|map(attribute='auth')|list)[0] == "true" %}
-  vars.http_auth_pair = "{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}"
+  vars.http_auth_pair = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}"
 {% endif %}
   assign where host.name == "{{ item_name }}"
   vars.notify = true
@@ -191,14 +191,14 @@ apply Service "http {{ ansible_fqdn }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('power .*')|list %}
+{% for item in mon_icinga_checks|matching('power .*')|list %}
 {% set item_name=item|regex_replace('^power (.*)$', '\\1') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
   check_command = "power"
 
-  vars.ip = "{{ (power_strips|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+  vars.ip = "{{ (mon_check_power_strips|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
   vars.statefile = "/tmp/pwr_{{ item_name }}"
   assign where host.name == "{{ item_name }}"
   vars.notify = true
@@ -207,7 +207,7 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('infiniband .*')|list %}
+{% for item in mon_icinga_checks|matching('infiniband .*')|list %}
 {% set item_name=item|regex_replace('^infiniband (.*)$', '\\1') %}
 apply Service "{{ item }}" {
   import "generic-service"
@@ -215,7 +215,7 @@ apply Service "{{ item }}" {
   check_command = "ib-host"
   check_interval = 20s
 
-  vars.host = "{{ (infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"
+  vars.host = "{{ (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"
   vars.netfile = "/etc/icinga2/ib-netfile.yml"
 
   assign where host.name == "{{ item_name }}"
@@ -225,7 +225,7 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('infiniband-net.*')|list %}
+{% for item in mon_icinga_checks|matching('infiniband-net.*')|list %}
 apply Service "{{ item }}" {
   import "generic-service"
 
@@ -255,8 +255,8 @@ apply Service "procs" {
 
   check_command = "procs"
 
-  vars.procs_warning = "{{ icinga_procs_warn }}"
-  vars.procs_critical = "{{ icinga_procs_crit }}"
+  vars.procs_warning = "{{ mon_icinga_procs_warn }}"
+  vars.procs_critical = "{{ mon_icinga_procs_crit }}"
   assign where host.name == NodeName
   vars.notify = true
   vars.datgroup = "procs"
@@ -295,12 +295,12 @@ apply Service "load" {
 
   /* Used by the ScheduledDowntime apply rule in `downtimes.conf`. */
   /*vars.backup_downtime = "02:00-03:00"*/
-  vars.load_wload1 = "{{ icinga_load_wload1 }}"
-  vars.load_wload5 = "{{ icinga_load_wload5 }}"
-  vars.load_wload15 = "{{ icinga_load_wload15 }}"
-  vars.load_cload1 = "{{ icinga_load_cload1 }}"
-  vars.load_cload5 = "{{ icinga_load_cload5 }}"
-  vars.load_cload15 = "{{ icinga_load_cload15 }}"
+  vars.load_wload1 = "{{ mon_icinga_load_wload1 }}"
+  vars.load_wload5 = "{{ mon_icinga_load_wload5 }}"
+  vars.load_wload15 = "{{ mon_icinga_load_wload15 }}"
+  vars.load_cload1 = "{{ mon_icinga_load_cload1 }}"
+  vars.load_cload5 = "{{ mon_icinga_load_cload5 }}"
+  vars.load_cload15 = "{{ mon_icinga_load_cload15 }}"
 
   assign where host.name == NodeName
   vars.notify = true
@@ -308,14 +308,14 @@ apply Service "load" {
   vars.datitem = "local"
 }
 
-{% for item in icinga_checks|matching('apt') %}
+{% for item in mon_icinga_checks|matching('apt') %}
 apply Service "{{ item }}" {
   import "generic-service"
 
   check_command = "apt"
 
   assign where host.name == NodeName
-  {% if apt_enabled %}
+  {% if mon_apt_enabled %}
     vars.notify = true
   {% else %}
     vars.notify = false
@@ -325,14 +325,14 @@ apply Service "{{ item }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('swport .*')|list %}
+{% for item in mon_icinga_checks|matching('swport .*')|list %}
 {% set item_name=item|regex_replace('^swport (.*)$', '\\1') %}
 apply Service "{{ item|replace("$", "") }}" {
   import "generic-service"
 
   check_command = "snmpif"
 
-  vars.ip = "{{ (swport|selectattr('if', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+  vars.ip = "{{ (mon_check_swport|selectattr('if', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
   vars.interface = "{{ item_name|replace("$", "$$") }}"
   assign where host.name == NodeName
   vars.datgroup = "snmpif"
@@ -340,7 +340,7 @@ apply Service "{{ item|replace("$", "") }}" {
 }
 {% endfor %}
 
-{% for item in icinga_checks|matching('ups.*') %}
+{% for item in mon_icinga_checks|matching('ups.*') %}
 apply Service "ups status" {
   import "generic-service"
 

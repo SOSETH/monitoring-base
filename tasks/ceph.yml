@@ -1,27 +1,32 @@
 ---
   # Ceph is special. We handle it here
   - name: (ceph) Install ceph-dash dependencies
+    become: True
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
     with_items:
       - python-flask
       - python-ceph
 
   - name: (ceph) Check ceph-dash version
+    become: True
     shell: apt-cache policy ceph-dash | grep Install | head -n1 | awk '{print $2}'
     register: swversion
     failed_when: False
     changed_when: False
 
   - name: (ceph) Copy ceph-dash package
+    become: True
     copy: src=ceph-dash_0.1_all.deb dest=/tmp/ceph-dash_0.1_all.deb owner=root group=root mode=0644
     when: swversion.stdout != "0.1"
 
   - name: (ceph) Install ceph-dash package
+    become: True
     command: dpkg -i --force-overwrite /tmp/ceph-dash_0.1_all.deb
     when: swversion.stdout != "0.1"
     notify: restart ceph-dash
 
   - name: (ceph) Install ceph-dash service
+    become: True
     copy: src="{{ item }}" dest="/etc/systemd/system/{{ item }}" owner=root group=root mode=0644
     with_items:
       - ceph-dash.service
@@ -29,32 +34,39 @@
     notify: restart ceph-dash
 
   - name: (ceph) Install ceph-dash runner
+    become: True
     copy: src="{{ item }}" dest="/opt/ceph-dash/{{ item }}" owner=root group=root mode=0755
     with_items:
       - ceph-lodash.py
     notify: restart ceph-dash
 
   - name: (ceph) Reload systemd
+    become: True
     command: systemctl daemon-reload
     when: cservice.changed
     notify: restart ceph-dash
 
   - name: (ceph) Ensure that ceph user exists
+    become: True
     user: name=ceph groups=www-data createhome=no append=yes shell=/bin/false
 
   - name: (ceph) Change permissions on ceph keyring so that the dashboard can access it
+    become: True
     file: path=/etc/ceph/ceph.client.admin.keyring owner=root group=www-data mode=0640
     notify: restart ceph-dash
 
   - name: (ceph) Install ceph check
+    become: True
     copy: src="check-ceph-dash.py" dest="/usr/lib/nagios/plugins/check-ceph-dash.py" owner=root group=root mode=0755
 
   - name: (ceph) Configure ceph check
+    become: True
     copy: src="ceph-dash-config.json" dest="/opt/ceph-dash/config.json" owner=ceph group=www-data mode=0644
 
   - name: (ceph) Refresh ceph cluster config
+    become: True
     shell: cat /etc/ceph/ceph.conf | sed 's/\/etc\/pve\/priv\/\$cluster\.\$name\.keyring/\/etc\/ceph\/ceph\.client\.admin\.keyring/g' > /opt/ceph-dash/ceph.conf && chown ceph:www-data /opt/ceph-dash/ceph.conf && chmod 0644 /opt/ceph-dash/ceph.conf
     changed_when: False
 
   - name: (ceph) Append ceph to list of checks
-    set_fact: icinga_checks="{{icinga_checks}} + ['ceph']"
+    set_fact: icinga_checks="{{ mon_icinga_checks }} + ['ceph']"

@@ -1,32 +1,96 @@
 ---
   - name: Disable IPv6 for APT since debmon has some issues with it
+    become: True
     template: src=noipv6.j2 dest=/etc/apt/apt.conf.d/99-apt-ipv4-only owner=root group=root mode=0644
-    when: ansible_distribution == 'Debian'
  
   - name: Add debmon repository key
+    become: True
     apt_key: data="{{ lookup('file', 'debmon.key') }}" state=present state=present
-    when: ansible_distribution == 'Debian'
 
   - name: Add debmon repository
+    become: True
     apt_repository: repo='deb http://debmon.org/debmon debmon-{{ ansible_distribution_release }} main' state=present
     register: repochanged
-    when: ansible_distribution == 'Debian'
 
   - name: Explicitly refresh apt cache
+    become: True
     apt: update_cache=yes
     when: repochanged.changed
 
-  - name: Install icinga
+  - name: Install monitoring client packages
+    become: True
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
     with_items:
       - icinga2
       - sysstat
       - bc
-    when: ansible_distribution == 'Debian'
+      - prometheus-node-exporter
+    when: ansible_distribution_release != 'jessie'
+
+  - name: Install monitoring client packages
+    become: True
+    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
+    with_items:
+      - icinga2
+      - sysstat
+      - bc
+      - daemon
+    when: ansible_distribution_release == 'jessie'
+
+  - name: (prometheus) Check prometheus-node-exporter version
+    become: True
+    shell: apt-cache policy prometheus-node-exporter | grep Install | head -n1 | awk '{print $2}'
+    register: swversion
+    failed_when: False
+    changed_when: False
+    when: ansible_distribution_release == 'jessie'
+
+  - name: (prometheus) Copy prometheus-node-exporter package
+    become: True
+    copy: src=prometheus-node-exporter_0.13.0+ds-1_amd64.deb dest=/tmp/prometheus-node-exporter_0.13.0+ds-1_amd64.deb owner=root group=root mode=0644
+    when: ansible_distribution_release == 'jessie' and swversion.stdout != "0.13.0+ds-1"
+
+  - name: (prometheus) Install prometheus-node-exporter package
+    become: True
+    command: dpkg -i --force-overwrite /tmp/prometheus-node-exporter_0.13.0+ds-1_amd64.deb
+    when: ansible_distribution_release == 'jessie' and swversion.stdout != "0.13.0+ds-1"
+
+  - name: Actually enable sysstat
+    become: True
+    template: src=sysstat.j2 dest=/etc/default/sysstat
+    notify: restart sysstat
+
+  - name: Configure prometheus node exporter
+    become: True
+    template: src=prometheus-node-exporter.j2 dest=/etc/default/prometheus-node-exporter owner=root group=root mode=0644
+    notify: restart prometheus nexp
+    when: mon_enable_prometheus
+
+  - name: Build haproxy SSL certificate (prometheus)
+    shell: cat /etc/haproxy/pm-cl.crt /etc/haproxy/pm-cl.key > /etc/haproxy/pm-c-full.pem
+    changed_when: False
+    notify: restart haproxy
+    when: mon_enable_prometheus
+
+  - name: Build haproxy SSL certificate (syslog)
+    shell: cat /etc/haproxy/ls-cl.crt /etc/haproxy/ls-cl.key > /etc/haproxy/ls-c-full.pem
+    changed_when: False
+    notify: restart haproxy
+    when: mon_enable_syslog_forwarding
+
+  - name: Configure rsyslog to forward log messages
+    template: src=rsyslog-remote.conf.j2 dest=/etc/rsyslog.d/40-syslog-client.conf owner=root group=root
+    notify: restart syslog
+    when: mon_enable_syslog_forwarding
+
+  - name: Create TLS tunnel haproxy config
+    template: src=haproxy-dropin.j2 dest=/etc/haproxy/conf.d/40-syslog-client.conf owner=root group=root
+    notify: restart haproxy
+    when: mon_enable_syslog_forwarding or mon_enable_prometheus
 
   - name: Enable default services
     set_fact:
-      icinga_checks: ["apt", "icinga", "load", "mem", "procs", "users"]
+      mon_icinga_checks: ["apt", "icinga", "load", "mem", "procs", "users"]
 
   - name: Initialize list of hosts
     local_action: file path='/tmp/icinga_hosts_found{{item}}.pickle' state=absent
@@ -39,17 +103,17 @@
     changed_when: False
 
   - name: (mdadm) Append mdadm raids to list of checks
-    set_fact: icinga_checks="{{icinga_checks}} + ['raid']"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + ['raid']"
     when: mdout.rc == 0 and mdout.stdout != ""
 
   - name: (disk) Detect mounted volumes
     set_fact:
       disk_item: "disk {{ item.device }}"
-    with_items: "{{ ansible_mounts|attr_in('mount', icinga_valid_mounts) }}"
+    with_items: "{{ ansible_mounts|attr_in('mount', mon_icinga_valid_mounts) }}"
     register: diskappend
 
   - name: (disk) Append detected mountpoints to list of checks
-    set_fact: icinga_checks="{{icinga_checks}} + {{ diskappend.results | map(attribute='ansible_facts.disk_item') | list }}"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ diskappend.results | map(attribute='ansible_facts.disk_item') | list }}"
 
   - name: (iostat) Enumerate physical disks in this system
     set_fact:
@@ -58,7 +122,7 @@
     register: pdiskappend
 
   - name: (iostat) Append detected disks to list of checks
-    set_fact: icinga_checks='{{icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list }}'
+    set_fact: mon_icinga_checks='{{mon_icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list }}'
 
   - name: (ceph) Detect if this node is a ceph monitor
     shell: ps ax | grep ceph-mon | grep -v grep
@@ -72,31 +136,31 @@
 
   - name: (ipmi) Include ipmi handler
     include: ipmi.yml
-    when: ipmi_hosts != False
+    when: mon_check_ipmi_hosts != False
 
   - name: (power) Include powerstrip handler
     include: power.yml
-    when: power_strips != False
+    when: mon_check_power_strips != False
 
   - name: (ib) Include infiniband handler
     include: ib.yml
-    when: infiniband != False
+    when: mon_check_infiniband != False
 
   - name: (smart) Include smart handler
     include: smart.yml
-    when: skip_smart == False
+    when: mon_skip_smart == False
 
   - name: (sas) Include sas smart handler
     include: sas.yml
-    when: skip_smart == False
+    when: mon_skip_smart == False
 
   - name: (http) Include website handler
     include: websites.yml
-    when: websites != False
+    when: mon_check_websites != False
 
   - name: (sensors) Include sensor handler
     include: sensors.yml
-    when: sensors != False
+    when: mon_check_sensors != False
 
   - name: (ups) Check for apcupsd
     stat: path=/etc/default/apcupsd
@@ -109,9 +173,10 @@
 
   - name: (swport) Include switch port handler
     include: swport.yml
-    when: swport != False
+    when: mon_check_swport != False
 
   - name: Create icinga config files
+    become: True
     template: src={{item }}.j2 dest=/etc/icinga2/conf.d/{{item }} owner=root group=root mode=0644
     notify: restart icinga
     with_items:
@@ -120,16 +185,13 @@
       - hosts.conf
 
   - name: Kill redundant default config files
+    become: True
     file: path={{item}} state=absent
     with_items:
       - /etc/icinga2/conf.d/apt.conf
-
-  - name: Kill redundant default config files
-    file: path={{item}} state=absent
-    with_items:
-      - /etc/icinga2/conf.d/apt.conf
-
+    
   - name: Manually install a few checks from contrib
+    become: True
     copy: src="{{ item }}" dest="/usr/lib/nagios/plugins/{{ item }}" owner=root group=root mode=0755
     notify: restart icinga
     with_items:
@@ -138,10 +200,13 @@
       - check_raid.pl
 
   - name: Create facts.d directory
+    become: True
     file: dest=/etc/ansible/facts.d state=directory owner=root group=root
 
   - name: Save list of enabled checks
-    copy: content={{ icinga_checks }} dest=/etc/ansible/facts.d/icinga_checks.fact
+    become: True
+    copy: content={{ mon_icinga_checks }} dest=/etc/ansible/facts.d/mon_icinga_checks.fact
 
   - name: Save list of detected hosts
+    become: True
     copy: content={{ icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) }} dest=/etc/ansible/facts.d/icinga_hosts_found.fact

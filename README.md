@@ -1,7 +1,23 @@
-# Icinga checks
+# Monitoring base
 
-This repos contains the configuration of all icinga checks and is used by both
-the icinga master and the icinga client.
+(have a look at defaults/main.yml)
+
+This repos configures monitoring software for a given machine and is used as a basis for
+both server and client configuration. It will install and configure:
+* icinga2 (checks only)
+* prometheus-node-exporter (for localhost only, can be disabled)
+* syslog forwarding (can be disabled)
+* sysstat
+
+# Prometheus
+Vanilla atm
+
+# Syslog forwarding
+Uses rsyslog, should be installed on Debian by default. systemd-journald has it's
+own protocol, but since that's not documented anywhere I do not use it at the
+moment...
+
+# Icinga checks
 Checks configured automatically:
 * ceph
 * mem
