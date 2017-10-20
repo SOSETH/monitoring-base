@@ -11,8 +11,9 @@ backend rsyslog-back
 {% endfor %}
 {% endif %}
 {% if mon_enable_prometheus %}
+
 frontend pnexp-front
-	bind 0.0.0.0:9101 ssl crt /etc/haproxy/pm-c-full.pem ca-file /etc/haproxy/pm-ca.crt verify required
+	bind :::9101 v4v6 ssl crt /etc/haproxy/pm-sv-full.pem ca-file /etc/haproxy/pm-ca.crt crl-file /etc/haproxy/pm-crl.pem verify required
 	mode tcp
 	default_backend pnexp-back
 

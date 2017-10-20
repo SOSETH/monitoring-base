@@ -67,7 +67,7 @@
     when: mon_enable_prometheus
 
   - name: Build haproxy SSL certificate (prometheus)
-    shell: cat /etc/haproxy/pm-cl.crt /etc/haproxy/pm-cl.key > /etc/haproxy/pm-c-full.pem
+    shell: cat /etc/haproxy/pm-sv.crt /etc/haproxy/pm-sv.key > /etc/haproxy/pm-sv-full.pem
     changed_when: False
     notify: restart haproxy
     when: mon_enable_prometheus

@@ -5,8 +5,8 @@
     with_items:
       - libibnetdisc5
       - libibmad5
-      - libyaml-cpp0.5
-      - libboost-program-options1.55.0
+      - libyaml-cpp0.5v5
+      - libboost-program-options1.62.0
       - libosmcomp3
       - libibumad3
 
