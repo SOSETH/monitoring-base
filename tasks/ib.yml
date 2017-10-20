@@ -25,4 +25,4 @@
     register: ibappend
 
   - name: (ib) Append detected infiniband hosts to list of checks
-    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ ibappend.results | map(attribute='ansible_facts.ib_item') | list }} + ['ib-net']"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ ibappend.results | map(attribute='ansible_facts.ib_item') | list }} + ['ib-net']"

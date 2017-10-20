@@ -177,12 +177,12 @@ apply Service "http {{ ansible_fqdn }}" {
   vars.http_vhost = "{{ item_name }}"
   vars.http_extendedperfdata = "true"
   vars.http_onredirect = "follow"
-{% if (websites|selectattr('name', 'equalto', item_name)|map(attribute='ssl')|list)[0] == "true" %}
+{% if (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='ssl')|list)[0] == "true" %}
   vars.http_ssl = "true"
   vars.http_sni = "true"
 {% endif %}
-{% if (websites|selectattr('name', 'equalto', item_name)|map(attribute='auth')|list)[0] == "true" %}
-  vars.http_auth_pair = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}"
+{% if (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='auth')|list)[0] == "true" %}
+  vars.http_auth_pair = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}"
 {% endif %}
   assign where host.name == "{{ item_name }}"
   vars.notify = true

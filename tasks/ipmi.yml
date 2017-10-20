@@ -21,4 +21,4 @@
     register: ipmiappend
 
   - name: (ipmi) Append detected mountpoints to list of checks
-    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ ipmiappend.results | map(attribute='ansible_facts.ipmi_item') | list }}"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ ipmiappend.results | map(attribute='ansible_facts.ipmi_item') | list }}"

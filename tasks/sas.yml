@@ -33,5 +33,5 @@
     file: path=/tmp/disks state=absent
 
   - name: (sas-smart) Append detected disks to list of checks
-    set_fact: icinga_checks="{{ mon_icinga_checks }} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list }}"
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list }}"
     when: diskstat.stat.exists

@@ -6,7 +6,7 @@
     register: httpappend
 
   - name: (http) Append detected websites to list of checks
-    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ httpappend.results | map(attribute='ansible_facts.http_item') | list }}"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ httpappend.results | map(attribute='ansible_facts.http_item') | list }}"
 
   - name: (https) Detect websites
     set_fact:
@@ -15,4 +15,4 @@
     register: httpsappend
 
   - name: (https) Append detected websites to list of checks
-    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ httpsappend.results | map(attribute='ansible_facts.https_item') | list }}"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ httpsappend.results | map(attribute='ansible_facts.https_item') | list }}"

@@ -69,4 +69,4 @@
     changed_when: False
 
   - name: (ceph) Append ceph to list of checks
-    set_fact: icinga_checks="{{ mon_icinga_checks }} + ['ceph']"
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + ['ceph']"

@@ -28,4 +28,4 @@
     register: powerappend
 
   - name: (power) Append detected powerstrips to list of checks
-    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ powerappend.results | map(attribute='ansible_facts.power_item') | list }}"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ powerappend.results | map(attribute='ansible_facts.power_item') | list }}"

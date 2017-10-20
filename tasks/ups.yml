@@ -4,4 +4,4 @@
     copy: src=check_apcupsd.sh dest=/usr/lib/nagios/plugins/check_apcupsd.sh owner=root group=root mode=0755
 
   - name: (ups) Append ups to list of checks
-    set_fact: icinga_checks="{{mon_icinga_checks}} + ['ups']"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + ['ups']"

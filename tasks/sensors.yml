@@ -30,4 +30,4 @@
     register: sensorsappend
 
   - name: (sensors) Append detected sensors to list of checks
-    set_fact: icinga_checks="{{mon_icinga_checks}} + {{ sensorsappend.results | map(attribute='ansible_facts.sensor_item') | list }}"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ sensorsappend.results | map(attribute='ansible_facts.sensor_item') | list }}"
