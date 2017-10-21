@@ -210,3 +210,25 @@
   - name: Save list of detected hosts
     become: True
     copy: content={{ icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) }} dest=/etc/ansible/facts.d/icinga_hosts_found.fact
+
+  - name: Ensure that services are started and enabled
+    become: True
+    service: name={{ item }} state=started enabled=yes
+    with_items:
+      - sysstat
+
+  - name: Ensure that services are started and enabled (prometheus)
+    become: True
+    service: name={{ item }} state=started enabled=yes
+    with_items:
+      - haproxy
+      - prometheus-node-exporter
+    when: mon_enable_prometheus
+
+  - name: Ensure that services are started and enabled (syslog)
+    become: True
+    service: name={{ item }} state=started enabled=yes
+    with_items:
+      - haproxy
+      - rsyslog
+    when: mon_enable_syslog_forwarding
