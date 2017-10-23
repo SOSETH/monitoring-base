@@ -92,9 +92,23 @@
     set_fact:
       mon_icinga_checks: ["apt", "icinga", "load", "mem", "procs", "users"]
 
-  - name: Initialize list of hosts
-    local_action: file path='/tmp/icinga_hosts_found{{item}}.pickle' state=absent
-    with_items: "{{ groups['all'] }}"
+#  - name: Initialize list of hosts
+#    local_action: file path='/tmp/icinga_hosts_found{{item}}.pickle' state=absent
+#   with_items: "{{ groups['all'] }}"
+  - name: Load configuration facts
+    set_fact:
+      icinga_hosts_found: []
+
+  - name: Kill old configuration artifacts
+    shell: rm /tmp/icinga_hosts_found*
+    delegate_to: localhost
+    failed_when: False
+    changed_when: False
+
+  - name: Load configuration facts
+    set_fact:
+      icinga_hosts_found: "{{icinga_hosts_found|append(groups['mon-server'], 'icinga_hosts_found'+ansible_fqdn)|append(groups['mon-client'], 'icinga_hosts_found'+ansible_fqdn)}}"
+    when: ansible_fqdn in groups['mon-server']
 
   - name: (mdadm) Detect mdadm raids
     shell: cat /proc/mdstat | grep active | awk '{print $1}'

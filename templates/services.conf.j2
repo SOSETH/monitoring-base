@@ -10,15 +10,21 @@
  * configuration validation (`icinga2 daemon -C`).
  */
 
+/*template Service "grr-local" {
+  import "generic-service"
+  command_endpoint = NodeName
+}*/
+
 /*
  * This is an example host based on your
  * local host's FQDN. Specify the NodeName
  * constant in `constants.conf` or use your
  * own description, e.g. "db-host-1".
  */
+ {#
 {% for item in mon_icinga_checks|matching('disk .*') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "disk"
 
@@ -33,7 +39,7 @@ apply Service "{{ item }}" {
 
 {% for item in mon_icinga_checks|matching('iostat .*') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "iostat"
   vars.iostat_disk = "{{ item | regex_replace('^iostat (.*)$', '\\1')}}"
@@ -53,7 +59,7 @@ apply Service "{{ item }}" {
 
 {% for item in mon_icinga_checks|matching('smart .*') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "smartSOS"
   vars.device = "{{ item | regex_replace('^smart (.*)$', '\\1')}}"
@@ -67,7 +73,7 @@ apply Service "{{ item }}" {
 
 {% for item in mon_icinga_checks|matching('sas .*') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "sasSOS"
   vars.device = "{{ item | regex_replace('^sas (.*)$', '\\1')}}"
@@ -82,7 +88,7 @@ apply Service "{{ item }}" {
 {% for item in mon_icinga_checks|matching('sensors .*') %}
 {% set item_name=item|regex_replace('^sensors (.*)$', '\\1') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "sensor"
   vars.my_sensor = "{{ (mon_check_sensors|selectattr('name', 'equalto', item_name)|map(attribute='sensor')|list)[0] }}"
@@ -96,7 +102,7 @@ apply Service "{{ item }}" {
 
 {% for item in mon_icinga_checks|matching('raid') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "raid"
 
@@ -109,7 +115,7 @@ apply Service "{{ item }}" {
 
 {% for item in mon_icinga_checks|matching('ceph') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "ceph"
   check_interval = 30s
@@ -124,7 +130,7 @@ apply Service "{{ item }}" {
 {% for item in mon_icinga_checks|matching('ipmi .*')|list %}
 {% set item_name=item|regex_replace('^ipmi (.*)$', '\\1') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "ipmi"
 
@@ -144,7 +150,7 @@ apply Service "{{ item }}" {
  * check the certificate for expiry. Therefore we have to use it twice...
  */
 apply Service "https {{ ansible_fqdn }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "http"
   check_interval = 1h
@@ -168,7 +174,7 @@ apply Service "https {{ ansible_fqdn }}" {
 {% for item in mon_icinga_checks|matching('http .*')|list %}
 {% set item_name=item|regex_replace('^http (.*)$', '\\1') %}
 apply Service "http {{ ansible_fqdn }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "http"
   check_interval = {{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='t')|list)[0] }}
@@ -194,7 +200,7 @@ apply Service "http {{ ansible_fqdn }}" {
 {% for item in mon_icinga_checks|matching('power .*')|list %}
 {% set item_name=item|regex_replace('^power (.*)$', '\\1') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "power"
 
@@ -210,7 +216,7 @@ apply Service "{{ item }}" {
 {% for item in mon_icinga_checks|matching('infiniband .*')|list %}
 {% set item_name=item|regex_replace('^infiniband (.*)$', '\\1') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "ib-host"
   check_interval = 20s
@@ -227,7 +233,7 @@ apply Service "{{ item }}" {
 
 {% for item in mon_icinga_checks|matching('infiniband-net.*')|list %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "ib-net"
   vars.netfile = "/etc/icinga2/ib-netfile.yml"
@@ -240,7 +246,7 @@ apply Service "{{ item }}" {
 {% endfor %}
 
 apply Service "icinga" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "icinga"
 
@@ -251,7 +257,7 @@ apply Service "icinga" {
 }
 
 apply Service "procs" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "procs"
 
@@ -264,7 +270,7 @@ apply Service "procs" {
 }
 
 apply Service "users" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "users"
 
@@ -275,7 +281,7 @@ apply Service "users" {
 }
 
 apply Service "mem" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "mem"
   vars.mem_used = true
@@ -290,11 +296,9 @@ apply Service "mem" {
 }
 
 apply Service "load" {
-  import "generic-service"
+  import "grr-local"
   check_command = "load"
 
-  /* Used by the ScheduledDowntime apply rule in `downtimes.conf`. */
-  /*vars.backup_downtime = "02:00-03:00"*/
   vars.load_wload1 = "{{ mon_icinga_load_wload1 }}"
   vars.load_wload5 = "{{ mon_icinga_load_wload5 }}"
   vars.load_wload15 = "{{ mon_icinga_load_wload15 }}"
@@ -310,7 +314,7 @@ apply Service "load" {
 
 {% for item in mon_icinga_checks|matching('apt') %}
 apply Service "{{ item }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "apt"
 
@@ -328,7 +332,7 @@ apply Service "{{ item }}" {
 {% for item in mon_icinga_checks|matching('swport .*')|list %}
 {% set item_name=item|regex_replace('^swport (.*)$', '\\1') %}
 apply Service "{{ item|replace("$", "") }}" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "snmpif"
 
@@ -342,7 +346,7 @@ apply Service "{{ item|replace("$", "") }}" {
 
 {% for item in mon_icinga_checks|matching('ups.*') %}
 apply Service "ups status" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "apcupsd"
   vars.warning = "0"
@@ -354,7 +358,7 @@ apply Service "ups status" {
   assign where host.name == NodeName
 }
 apply Service "ups battery" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "apcupsd"
   vars.warning = "80"
@@ -366,7 +370,7 @@ apply Service "ups battery" {
   assign where host.name == NodeName
 }
 apply Service "ups temp" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "apcupsd"
   vars.warning = "50"
@@ -378,7 +382,7 @@ apply Service "ups temp" {
   assign where host.name == NodeName
 }
 apply Service "ups load" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "apcupsd"
   vars.warning = "70"
@@ -390,7 +394,7 @@ apply Service "ups load" {
   assign where host.name == NodeName
 }
 apply Service "ups time" {
-  import "generic-service"
+  import "grr-local"
 
   check_command = "apcupsd"
   vars.warning = "10"
@@ -401,4 +405,6 @@ apply Service "ups time" {
 
   assign where host.name == NodeName
 }
-{% endfor %}
+{% endfor %}*/
+
+#}
