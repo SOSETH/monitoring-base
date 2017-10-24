@@ -194,15 +194,20 @@
     template: src={{item }}.j2 dest=/etc/icinga2/conf.d/{{item }} owner=root group=root mode=0644
     notify: restart icinga
     with_items:
-      - services.conf
       - commands.conf
-      - hosts.conf
+
+  - name: Create icinga config files
+    become: True
+    template: src=hosts.conf.j2 dest=fetch/icc/{{ ansible_fqdn }}.conf owner=root group=root mode=0644
+    delegate_to: localhost
 
   - name: Kill redundant default config files
     become: True
     file: path={{item}} state=absent
     with_items:
       - /etc/icinga2/conf.d/apt.conf
+      - /etc/icinga2/conf.d/hosts.conf
+      - /etc/icinga2/conf.d/services.conf
     
   - name: Manually install a few checks from contrib
     become: True

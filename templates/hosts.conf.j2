@@ -16,13 +16,19 @@
  */
 
 
-object Host NodeName {
+object Host "{{ ansible_fqdn }}" {
   /* Import the default host template defined in `templates.conf`. */
   import "generic-host"
 
   /* Specify the address attributes for checks e.g. `ssh` or `http`. */
-  address = "127.0.0.1"
-  address6 = "::1"
+  address = "{{ ansible_default_ipv4['address'] }}"
+  {% if ansible_default_ipv6 %}
+  {% if ansible_default_ipv6['address'].startswith('2001') %}
+  {# Ansible sometimes thinks of link-local IPv6 address as globally reachable
+     addresses. Filter that case. If you know a better way, feel free to fix #}
+  address6 = "{{ ansible_default_ipv6['address'] }}"
+  {% endif %}
+  {% endif %}
 
   /* Set custom attribute `os` for hostgroup assignment in `groups.conf`. */
   vars.os = "Linux"
