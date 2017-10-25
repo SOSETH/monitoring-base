@@ -20,5 +20,5 @@
     with_items: "{{ mon_check_ipmi_hosts|map(attribute='name')|list }}"
     register: ipmiappend
 
-  - name: (ipmi) Append detected mountpoints to list of checks
+  - name: (ipmi) Append detected IPMIs to list of checks
     set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ ipmiappend.results | map(attribute='ansible_facts.ipmi_item') | list }}"

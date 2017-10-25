@@ -55,7 +55,7 @@
     with_items: "{{ disks.stdout_lines|default([]) }}"
     when: diskstat.stat.exists
     register: smartappend
-    
+
   - name: (smart) Remove tempfile
     become: True
     file: path=/tmp/disks state=absent

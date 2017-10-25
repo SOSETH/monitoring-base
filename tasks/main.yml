@@ -2,7 +2,7 @@
   - name: Disable IPv6 for APT since debmon has some issues with it
     become: True
     template: src=noipv6.j2 dest=/etc/apt/apt.conf.d/99-apt-ipv4-only owner=root group=root mode=0644
- 
+
   - name: Add debmon repository key
     become: True
     apt_key: data="{{ lookup('file', 'debmon.key') }}" state=present state=present
@@ -90,25 +90,13 @@
 
   - name: Enable default services
     set_fact:
-      mon_icinga_checks: ["apt", "icinga", "load", "mem", "procs", "users"]
-
-#  - name: Initialize list of hosts
-#    local_action: file path='/tmp/icinga_hosts_found{{item}}.pickle' state=absent
-#   with_items: "{{ groups['all'] }}"
-  - name: Load configuration facts
-    set_fact:
-      icinga_hosts_found: []
+      mon_icinga_checks: ["apt"]
 
   - name: Kill old configuration artifacts
     shell: rm /tmp/icinga_hosts_found*
     delegate_to: localhost
     failed_when: False
     changed_when: False
-
-  - name: Load configuration facts
-    set_fact:
-      icinga_hosts_found: "{{icinga_hosts_found|append(groups['mon-server'], 'icinga_hosts_found'+ansible_fqdn)|append(groups['mon-client'], 'icinga_hosts_found'+ansible_fqdn)}}"
-    when: ansible_fqdn in groups['mon-server']
 
   - name: (mdadm) Detect mdadm raids
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
@@ -196,7 +184,7 @@
     with_items:
       - commands.conf
 
-  - name: Create icinga config files
+  - name: Create icinga host definitions
     become: True
     template: src=hosts.conf.j2 dest=fetch/icc/{{ ansible_fqdn }}.conf owner=root group=root mode=0644
     delegate_to: localhost
@@ -208,7 +196,7 @@
       - /etc/icinga2/conf.d/apt.conf
       - /etc/icinga2/conf.d/hosts.conf
       - /etc/icinga2/conf.d/services.conf
-    
+
   - name: Manually install a few checks from contrib
     become: True
     copy: src="{{ item }}" dest="/usr/lib/nagios/plugins/{{ item }}" owner=root group=root mode=0755
@@ -218,17 +206,9 @@
       - check_mem.pl
       - check_raid.pl
 
-  - name: Create facts.d directory
+  - name: Remove facts.d directory
     become: True
-    file: dest=/etc/ansible/facts.d state=directory owner=root group=root
-
-  - name: Save list of enabled checks
-    become: True
-    copy: content={{ mon_icinga_checks }} dest=/etc/ansible/facts.d/mon_icinga_checks.fact
-
-  - name: Save list of detected hosts
-    become: True
-    copy: content={{ icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) }} dest=/etc/ansible/facts.d/icinga_hosts_found.fact
+    file: dest=/etc/ansible/facts.d state=absent
 
   - name: Ensure that services are started and enabled
     become: True

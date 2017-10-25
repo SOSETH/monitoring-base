@@ -1,20 +1,6 @@
-/*
- * Host definitions with object attributes
- * used for apply rules for Service, Notification,
- * Dependency and ScheduledDowntime objects.
- *
- * Tip: Use `icinga2 object list --type Host` to
- * list all host objects after running
- * configuration validation (`icinga2 daemon -C`).
- */
-
-/*
- * This is an example host based on your
- * local host's FQDN. Specify the NodeName
- * constant in `constants.conf` or use your
- * own description, e.g. "db-host-1".
- */
-
+/* Managed by ansible, do not edit! This file is generated in monitoring-base
+ * for each host, stored on the node executing ansible and then uploaded to all
+ * master nodes */
 
 object Host "{{ ansible_fqdn }}" {
   /* Import the default host template defined in `templates.conf`. */
@@ -34,7 +20,10 @@ object Host "{{ ansible_fqdn }}" {
   vars.os = "Linux"
   vars.distribution = "{{ ansible_distribution }}"
   vars.distribution_release = "{{ ansible_distribution_release }}"
-
+  /* Normal checks */
+{% for item in mon_icinga_checks|matching('apt') %}
+  vars.apt = true
+{% endfor %}
   /* Normal disk check */
 {% for item in mon_icinga_checks|matching('disk .*') %}
   vars.disk["{{ item | regex_replace('^disk (.*)$', '\\1')}}"] = {
@@ -63,10 +52,98 @@ object Host "{{ ansible_fqdn }}" {
 {% for item in mon_icinga_checks|matching('sas .*') %}
   vars.sas["{{ item | regex_replace('^sas (.*)$', '\\1')}}"] = {
     device = "{{ item | regex_replace('^sas (.*)$', '\\1')}}"
-  } 
+  }
 {% endfor %}
-
-
+  /* Sensor checks for lm-sensors */
+{% for item in mon_icinga_checks|matching('sensors .*') %}
+{% set item_name=item|regex_replace('^sensors (.*)$', '\\1') %}
+  vars.sensor["{{ item_name }}"] = {
+    my_sensor = "{{ (mon_check_sensors|selectattr('name', 'equalto', item_name)|map(attribute='sensor')|list)[0] }}"
+  }
+{% endfor %}
+{% for item in mon_icinga_checks|matching('raid') %}
+  /* Check mdadmin raid */
+  vars.raid = "true"
+{% endfor %}
+{% for item in mon_icinga_checks|matching('ceph') %}
+  /* Check CEPH health */
+  vars.ceph = "true"
+{% endfor %}
+{% for item in mon_icinga_checks|matching('ipmi .*') %}
+  /* Check somebody's IPMI */
+{% set item_name=item|regex_replace('^ipmi (.*)$', '\\1') %}
+  vars.ipmi["{{ item_name }}"] = {
+    ipmi_ip = "{{ (mon_check_ipmi_hosts|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+  }
+{% endfor %}
+{% for item in mon_icinga_checks|matching('https .*') %}
+  /* Check website (https part )*/
+{% set item_name=item|regex_replace('^https (.*)$', '\\1') %}
+  vars.http["{{ item_name }}"] = {
+    http_pagesize = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='minsize')|list)[0] }}",
+    http_vhost = "{{ item_name }}",
+    http_extendedperfdata = "true",
+    http_onredirect = "follow",
+    http_certificate = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='ssldays')|list)[0] }}",
+    http_ssl = "true",
+    http_sni = "true",
+{% if (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='auth')|list)[0] == "true" %}
+    http_auth_pair = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}",
+{% endif %}
+    http_certificate = "10"
+  }
+{% endfor %}
+{% for item in mon_icinga_checks|matching('http .*') %}
+  /* Check website (http part )*/
+{% set item_name=item|regex_replace('^http (.*)$', '\\1') %}
+  vars.http["{{ item_name }}"] = {
+    http_pagesize = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='minsize')|list)[0] }}",
+    http_vhost = "{{ item_name }}",
+    http_extendedperfdata = "true",
+{% if (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='auth')|list)[0] == "true" %}
+    http_auth_pair = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}",
+{% endif %}
+{% if (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='ssl')|list)[0] == "true" %}
+    http_ssl = "true",
+    http_sni = "true",
+{% endif %}
+    http_onredirect = "follow"
+  }
+{% endfor %}
+{% for item in mon_icinga_checks|matching('power .*') %}
+  /* Check an e3meter */
+{% set item_name=item|regex_replace('^power (.*)$', '\\1') %}
+  vars.power["{{ item_name }}"] = {
+    ip = "{{ (mon_check_power_strips|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+    statefile = "/tmp/pwr_{{ item_name }}"
+  }
+{% endfor %}
+{% for item in mon_icinga_checks|matching('infiniband .*')|list %}
+  /* Check infiniband metrics */
+{% set item_name=item|regex_replace('^infiniband (.*)$', '\\1') %}
+  vars.ib["{{ item }}"] = {
+    host = "{{ (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"
+    netfile = "/etc/icinga2/ib-netfile.yml"
+  }
+{% endfor %}
+{% for item in mon_icinga_checks|matching('infiniband-net .*')|list %}
+  /* Check infiniband network */
+  vars.ib-net["{{ item|regex_replace('^infiniband-net (.*)$', '\\1') }}"] = {
+    netfile = "/etc/icinga2/ib-netfile.yml"
+  }
+{% endfor %}
+{% for item in mon_icinga_checks|matching('snmpif .*')|list %}
+  /* Check switch interface via SNMP */
+{% set item_name=item|regex_replace('^snmpif (.*)$', '\\1') %}
+  vars.swport["{{ item }}"] = {
+    ip = "{{ (mon_check_swport|selectattr('if', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+    interface = "{{ item_name|replace("$", "$$") }}"
+  }
+{% endfor %}
+{% for item in mon_icinga_checks|matching('snmpif .*')|list %}
+  /* Check apcupsd */
+  vars.ups = "true"
+{% endfor %}
 
   /* Define notification mail attributes for notification apply rules in `notifications.conf`. */
   vars.notification["mail"] = {
