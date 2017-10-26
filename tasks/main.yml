@@ -43,17 +43,26 @@
     register: swversion
     failed_when: False
     changed_when: False
-    when: ansible_distribution_release == 'jessie'
+    when: ansible_distribution_release == 'jessie' and mon_enable_prometheus
 
   - name: (prometheus) Copy prometheus-node-exporter package
     become: True
     copy: src=prometheus-node-exporter_0.13.0+ds-1_amd64.deb dest=/tmp/prometheus-node-exporter_0.13.0+ds-1_amd64.deb owner=root group=root mode=0644
-    when: ansible_distribution_release == 'jessie' and swversion.stdout != "0.13.0+ds-1"
+    when: ansible_distribution_release == 'jessie' and swversion.stdout != "0.13.0+ds-1" and mon_enable_prometheus
 
   - name: (prometheus) Install prometheus-node-exporter package
     become: True
     command: dpkg -i --force-overwrite /tmp/prometheus-node-exporter_0.13.0+ds-1_amd64.deb
-    when: ansible_distribution_release == 'jessie' and swversion.stdout != "0.13.0+ds-1"
+    when: ansible_distribution_release == 'jessie' and swversion.stdout != "0.13.0+ds-1" and mon_enable_prometheus
+
+  - name: Enable default services
+    set_fact:
+      mon_icinga_checks: ["apt"]
+
+  - name: (prometheus) Initialize list of running exporters
+    set_fact:
+      mon_prometheus_exporters: ["node"]
+    when: mon_enable_prometheus
 
   - name: Actually enable sysstat
     become: True
@@ -82,21 +91,6 @@
     template: src=rsyslog-remote.conf.j2 dest=/etc/rsyslog.d/40-syslog-client.conf owner=root group=root
     notify: restart syslog
     when: mon_enable_syslog_forwarding
-
-  - name: Create TLS tunnel haproxy config
-    template: src=haproxy-dropin.j2 dest=/etc/haproxy/conf.d/40-syslog-client.conf owner=root group=root
-    notify: restart haproxy
-    when: mon_enable_syslog_forwarding or mon_enable_prometheus
-
-  - name: Enable default services
-    set_fact:
-      mon_icinga_checks: ["apt"]
-
-  - name: Kill old configuration artifacts
-    shell: rm /tmp/icinga_hosts_found*
-    delegate_to: localhost
-    failed_when: False
-    changed_when: False
 
   - name: (mdadm) Detect mdadm raids
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
@@ -206,15 +200,16 @@
       - check_mem.pl
       - check_raid.pl
 
-  - name: Remove facts.d directory
-    become: True
-    file: dest=/etc/ansible/facts.d state=absent
-
   - name: Ensure that services are started and enabled
     become: True
     service: name={{ item }} state=started enabled=yes
     with_items:
       - sysstat
+
+  - name: Create TLS tunnel haproxy config
+    template: src=haproxy-dropin.j2 dest=/etc/haproxy/conf.d/40-syslog-client.conf owner=root group=root
+    notify: restart haproxy
+    when: mon_enable_syslog_forwarding or mon_enable_prometheus
 
   - name: Ensure that services are started and enabled (prometheus)
     become: True
@@ -231,3 +226,13 @@
       - haproxy
       - rsyslog
     when: mon_enable_syslog_forwarding
+
+  - name: Create facts.d directory
+    become: True
+    file: dest=/etc/ansible/facts.d state=directory owner=root group=root
+    when: mon_enable_prometheus
+
+  - name: Save list of enabled checks
+    become: True
+    copy: content={{ mon_prometheus_exporters }} dest=/etc/ansible/facts.d/mon_prometheus_exporters.fact
+    when: mon_enable_prometheus

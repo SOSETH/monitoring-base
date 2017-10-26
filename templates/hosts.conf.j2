@@ -22,13 +22,15 @@ object Host "{{ ansible_fqdn }}" {
   vars.distribution_release = "{{ ansible_distribution_release }}"
   /* Normal checks */
 {% for item in mon_icinga_checks|matching('apt') %}
-  vars.apt = true
+  vars.apt = {
+    notify = false
+  }
 {% endfor %}
   /* Normal disk check */
 {% for item in mon_icinga_checks|matching('disk .*') %}
   vars.disk["{{ item | regex_replace('^disk (.*)$', '\\1')}}"] = {
     disk_partitions = "{{ item | regex_replace('^disk (.*)$', '\\1')}}"
-  } 
+  }
 {% endfor %}
   /* iostat */
 {% for item in mon_icinga_checks|matching('iostat .*') %}
@@ -79,9 +81,10 @@ object Host "{{ ansible_fqdn }}" {
 {% for item in mon_icinga_checks|matching('https .*') %}
   /* Check website (https part )*/
 {% set item_name=item|regex_replace('^https (.*)$', '\\1') %}
-  vars.http["{{ item_name }}"] = {
+  vars.https["{{ item_name }}"] = {
     http_pagesize = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='minsize')|list)[0] }}",
     http_vhost = "{{ item_name }}",
+    http_address = "{{ item_name }}",
     http_extendedperfdata = "true",
     http_onredirect = "follow",
     http_certificate = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='ssldays')|list)[0] }}",
@@ -99,6 +102,7 @@ object Host "{{ ansible_fqdn }}" {
   vars.http["{{ item_name }}"] = {
     http_pagesize = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='minsize')|list)[0] }}",
     http_vhost = "{{ item_name }}",
+    http_address = "{{ item_name }}",
     http_extendedperfdata = "true",
 {% if (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='auth')|list)[0] == "true" %}
     http_auth_pair = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}",
@@ -144,6 +148,20 @@ object Host "{{ ansible_fqdn }}" {
   /* Check apcupsd */
   vars.ups = "true"
 {% endfor %}
+  /* Thresholds for number of processes */
+  vars.procs = {
+    procs_warning = "{{ mon_icinga_procs_warn }}",
+    procs_critical = "{{ mon_icinga_procs_crit }}"
+  }
+  /* Thresholds for load levels */
+  vars.load = {
+    load_wload1 = "{{ mon_icinga_load_wload1 }}"
+    load_wload5 = "{{ mon_icinga_load_wload5 }}"
+    load_wload15 = "{{ mon_icinga_load_wload15 }}"
+    load_cload1 = "{{ mon_icinga_load_cload1 }}"
+    load_cload5 = "{{ mon_icinga_load_cload5 }}"
+    load_cload15 = "{{ mon_icinga_load_cload15 }}"
+  }
 
   /* Define notification mail attributes for notification apply rules in `notifications.conf`. */
   vars.notification["mail"] = {
@@ -156,84 +174,3 @@ object Host "{{ ansible_fqdn }}" {
   vars.is_client = {{ hostvars['mon_is_client'] }}
 {% endif %}
 }
-
-{#
-{% for item in mon_icinga_checks|matching('ipmi .*')|list %}
-{% set item_name=item|regex_replace('^ipmi (.*)$', '\\1') %}
-{% if item_name not in icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) %}
-{% set icinga_hosts_found=icinga_hosts_found|append(item_name, 'icinga_hosts_found'+ansible_fqdn) %}
-object Host "{{ item_name }}" {
-  import "satellite-host"
-  check_command = "cluster-zone"
-
-  /* Specify the address attributes for checks e.g. `ssh` or `http`. */
-  address = "{{ hostvars[item_name]['ansible_default_ipv4']['address'] }}"
-  {% if hostvars[item_name]['ansible_default_ipv6'] %}
-  {% if hostvars[item_name]['ansible_default_ipv6']['address'].startswith('2001') %}
-  address6 = "{{ hostvars[item_name]['ansible_default_ipv6']['address'] }}"
-  {% endif %}
-  {% endif %}
-
-  /* Set custom attribute `os` for hostgroup assignment in `groups.conf`. */
-  vars.os = "Linux"
-
-  /* Define notification mail attributes for notification apply rules in `notifications.conf`. */
-  vars.notification["mail"] = {
-    /* The UserGroup `icingaadmins` is defined in `users.conf`. */
-    groups = [ "icingaadmins" ]
-  }
-}
-{% endif %}
-{% endfor %}
-
-{% for item in mon_icinga_checks|matching('http .*')|list %}
-{% set item_name=item|regex_replace('^http (.*)$', '\\1') %}
-{% if item_name not in icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) %}
-{% set icinga_hosts_found=icinga_hosts_found|append(item_name, 'icinga_hosts_found'+ansible_fqdn) %}
-
-{% if (item_name in groups['mon-server']) or (item_name in groups['mon-client']) %}
-object Host "{{ item_name }}" {
-  import "satellite-host"
-  check_command = "cluster-zone"
-
-  /* Specify the address attributes for checks e.g. `ssh` or `http`. */
-  address = "{{ hostvars[item_name]['ansible_default_ipv4']['address'] }}"
-  {% if hostvars[item_name]['ansible_default_ipv6'] %}
-  {% if hostvars[item_name]['ansible_default_ipv6']['address'].startswith('2001') %}
-  address6 = "{{ hostvars[item_name]['ansible_default_ipv6']['address'] }}"
-  {% endif %}
-  {% endif %}
-
-  /* Set custom attribute `os` for hostgroup assignment in `groups.conf`. */
-  vars.os = "Linux"
-
-  /* Define notification mail attributes for notification apply rules in `notifications.conf`. */
-  vars.notification["mail"] = {
-    /* The UserGroup `icingaadmins` is defined in `users.conf`. */
-    groups = [ "icingaadmins" ]
-  }
-}
-{% else %}
-// Dummy host for website
-object Host "{{ item_name }}" {
-  import "generic-host"
-  address = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='addr')|list)[0] }}"
-}
-{% endif %}
-{% endif %}
-{% endfor %}
-
-{% for item in mon_icinga_checks|matching('power .*')|list %}
-{% set item_name=item|regex_replace('^power (.*)$', '\\1') %}
-{% if item_name not in icinga_hosts_found|append('', 'icinga_hosts_found'+ansible_fqdn) %}
-{% set icinga_hosts_found=icinga_hosts_found|append(item_name, 'icinga_hosts_found'+ansible_fqdn) %}
-// Dummy host for powerstrip
-object Host "{{ item_name }}" {
-  import "generic-host"
-  address = "{{ (mon_check_power_strips|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
-}
-
-{% endif %}
-{% endfor %}
-
-#}

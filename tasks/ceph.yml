@@ -7,6 +7,23 @@
       - python-flask
       - python-ceph
 
+  - name: (ceph) Check ceph-exporter version
+    become: True
+    shell: apt-cache policy ceph-exporter | grep Install | head -n1 | awk '{print $2}'
+    register: eswversion
+    failed_when: False
+    changed_when: False
+
+  - name: (ceph) Copy ceph-dash package
+    become: True
+    copy: src=ceph-exporter_1.1.0+git20170914.8.ac79cf7-1_amd64.deb dest=/tmp/ceph-exporter_1.1.0+git20170914.8.ac79cf7-1_amd64.deb owner=root group=root mode=0644
+    when: eswversion.stdout != "1.1.0+git20170914.8.ac79cf7-1"
+
+  - name: (ceph) Install ceph-dash package
+    become: True
+    command: dpkg -i --force-overwrite /tmp/ceph-exporter_1.1.0+git20170914.8.ac79cf7-1_amd64.deb
+    when: eswversion.stdout != "1.1.0+git20170914.8.ac79cf7-1"
+
   - name: (ceph) Check ceph-dash version
     become: True
     shell: apt-cache policy ceph-dash | grep Install | head -n1 | awk '{print $2}'
@@ -70,3 +87,6 @@
 
   - name: (ceph) Append ceph to list of checks
     set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + ['ceph']"
+
+  - name: (ceph) Append ceph to list of prometheus exporters
+    set_fact: mon_prometheus_exporters="{{ mon_prometheus_exporters }} + ['ceph']"

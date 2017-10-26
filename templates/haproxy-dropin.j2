@@ -20,4 +20,15 @@ frontend pnexp-front
 backend pnexp-back
 	mode tcp
 	server local 127.0.0.1:9100
+
+{% for item in mon_prometheus_exporters|matching('ceph') %}
+frontend pnexp-ceph-front
+	bind :::9228 v4v6 ssl crt /etc/haproxy/pm-sv-full.pem ca-file /etc/haproxy/pm-ca.crt crl-file /etc/haproxy/pm-crl.pem verify required
+	mode tcp
+	default_backend pnexp-ceph-back
+
+backend pnexp-ceph-back
+	mode tcp
+	server local 127.0.0.1:9128
+{% endfor %}
 {% endif %}
