@@ -29,7 +29,9 @@ object Host "{{ ansible_fqdn }}" {
   /* Normal disk check */
 {% for item in mon_icinga_checks|matching('disk .*') %}
   vars.disk["{{ item | regex_replace('^disk (.*)$', '\\1')}}"] = {
-    disk_partitions = "{{ item | regex_replace('^disk (.*)$', '\\1')}}"
+    disk_partitions = "{{ item | regex_replace('^disk (.*)$', '\\1')}}",
+    disk_wfree = "25%",
+    disk_cfree = "10%"
   }
 {% endfor %}
   /* iostat */
