@@ -125,7 +125,7 @@ object Host "{{ ansible_fqdn }}" {
 {% for item in mon_icinga_checks|matching('infiniband .*')|list %}
   /* Check infiniband metrics */
 {% set item_name=item|regex_replace('^infiniband (.*)$', '\\1') %}
-  vars.ib["{{ item }}"] = {
+  vars.ib["{{ item_name }}"] = {
     host = "{{ (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"
     netfile = "/etc/icinga2/ib-netfile.yml"
   }
