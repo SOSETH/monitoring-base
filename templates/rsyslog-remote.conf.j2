@@ -3,5 +3,7 @@ $WorkDirectory /var/spool/rsyslog
 $ActionQueueFileName fwdRule1
 $ActionQueueMaxDiskSpace 64m
 
+$PreserveFQDN on
+
 # Send messages to Loggly over TCP using the template.
 *.*   @@127.0.0.1:601

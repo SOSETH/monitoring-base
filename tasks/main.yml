@@ -64,6 +64,11 @@
       mon_prometheus_exporters: ["node"]
     when: mon_enable_prometheus
 
+  - name: (prometheus) Create local metrics dir to shut up the node exporter
+    become: True
+    file: path=/var/lib/prometheus/node-exporter owner=prometheus group=root mode=0755 state=directory
+    when: mon_enable_prometheus
+
   - name: Actually enable sysstat
     become: True
     template: src=sysstat.j2 dest=/etc/default/sysstat
