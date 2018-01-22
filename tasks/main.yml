@@ -134,35 +134,35 @@
     failed_when: False
 
   - name: (ceph) Include ceph handler
-    include: ceph.yml
+    include_tasks: ceph.yml
     when: cephout.stdout != ""
 
   - name: (ipmi) Include ipmi handler
-    include: ipmi.yml
+    include_tasks: ipmi.yml
     when: mon_check_ipmi_hosts != False
 
   - name: (power) Include powerstrip handler
-    include: power.yml
+    include_tasks: power.yml
     when: mon_check_power_strips != False
 
   - name: (ib) Include infiniband handler
-    include: ib.yml
+    include_tasks: ib.yml
     when: mon_check_infiniband != False
 
   - name: (smart) Include smart handler
-    include: smart.yml
+    include_tasks: smart.yml
     when: mon_skip_smart == False
 
   - name: (sas) Include sas smart handler
-    include: sas.yml
+    include_tasks: sas.yml
     when: mon_skip_smart == False
 
   - name: (http) Include website handler
-    include: websites.yml
+    include_tasks: websites.yml
     when: mon_check_websites != False
 
   - name: (sensors) Include sensor handler
-    include: sensors.yml
+    include_tasks: sensors.yml
     when: mon_check_sensors != False
 
   - name: (ups) Check for apcupsd
@@ -171,11 +171,11 @@
     changed_when: False
 
   - name: (ups) Include ups handler
-    include: ups.yml
+    include_tasks: ups.yml
     when: ups.stat.exists
 
   - name: (swport) Include switch port handler
-    include: swport.yml
+    include_tasks: swport.yml
     when: mon_check_swport != False
 
   - name: Create icinga config files
