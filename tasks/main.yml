@@ -95,9 +95,10 @@
     when: mon_enable_syslog_forwarding
 
   - name: Configure rsyslog to forward log messages
+    become: True
     template: src=rsyslog-remote.conf.j2 dest=/etc/rsyslog.d/40-syslog-client.conf owner=root group=root
     notify: restart syslog
-    when: mon_enable_syslog_forwarding
+    when: mon_enable_syslog_forwardin
 
   - name: (mdadm) Detect mdadm raids
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
@@ -189,7 +190,7 @@
     become: True
     template: src=hosts.conf.j2 dest=fetch/icc/{{ ansible_fqdn }}.conf owner=root group=root mode=0644
     delegate_to: localhost
-  
+
   - name: Create icinga host variable definitions
     become: True
     template: src=vars.conf.j2 dest=fetch/vars/{{ansible_fqdn}}.yml owner=root group=root mode=0644
@@ -219,6 +220,7 @@
       - sysstat
 
   - name: Create TLS tunnel haproxy config
+    become: True
     template: src=haproxy-dropin.j2 dest=/etc/haproxy/conf.d/40-syslog-client.conf owner=root group=root
     notify: restart haproxy
     when: mon_enable_syslog_forwarding or mon_enable_prometheus

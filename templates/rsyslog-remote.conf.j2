@@ -5,5 +5,16 @@ $ActionQueueMaxDiskSpace 64m
 
 $PreserveFQDN on
 
-# Send messages to Loggly over TCP using the template.
+# Send messages to logstash over TCP using the template.
 *.*   @@127.0.0.1:601
+
+{% if mon_logfiles %}
+module(load="imfile")
+# Add all logging services on this machine
+{% for service in mon_logfiles %}
+input(  type="imfile"
+        File="{{ service.filepath }}"
+        Tag="{{ service.name }}:"
+        )
+{% endfor %}
+{% endif %}
