@@ -101,6 +101,7 @@
     when: mon_enable_syslog_forwarding
 
   - name: (mdadm) Detect mdadm raids
+    check_mode: False
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
     register: mdout
     failed_when: False

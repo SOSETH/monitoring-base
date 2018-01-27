@@ -9,6 +9,7 @@
 
   - name: (ceph) Check ceph-exporter version
     become: True
+    check_mode: False
     shell: apt-cache policy ceph-exporter | grep Install | head -n1 | awk '{print $2}'
     register: eswversion
     failed_when: False
@@ -26,6 +27,7 @@
 
   - name: (ceph) Check ceph-dash version
     become: True
+    check_mode: False
     shell: apt-cache policy ceph-dash | grep Install | head -n1 | awk '{print $2}'
     register: swversion
     failed_when: False
