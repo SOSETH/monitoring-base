@@ -188,13 +188,11 @@
       - commands.conf
 
   - name: Create icinga host definitions
-    become: True
-    template: src=hosts.conf.j2 dest=fetch/icc/{{ ansible_fqdn }}.conf owner=root group=root mode=0644
+    template: src=hosts.conf.j2 dest=fetch/icc/{{ ansible_fqdn }}.conf
     delegate_to: localhost
 
   - name: Create icinga host variable definitions
-    become: True
-    template: src=vars.conf.j2 dest=fetch/vars/{{ansible_fqdn}}.yml owner=root group=root mode=0644
+    template: src=vars.conf.j2 dest=fetch/vars/{{ansible_fqdn}}.yml
     delegate_to: localhost
 
   - name: Kill redundant default config files
