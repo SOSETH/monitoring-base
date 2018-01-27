@@ -98,7 +98,7 @@
     become: True
     template: src=rsyslog-remote.conf.j2 dest=/etc/rsyslog.d/40-syslog-client.conf owner=root group=root
     notify: restart syslog
-    when: mon_enable_syslog_forwardin
+    when: mon_enable_syslog_forwarding
 
   - name: (mdadm) Detect mdadm raids
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
