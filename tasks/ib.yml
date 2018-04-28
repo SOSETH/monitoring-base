@@ -16,7 +16,7 @@
 
   - name: (ib) Install infiniband check netfile
     become: True
-    copy: src="ib-netfile.yml" dest="/etc/icinga2/ib-netfile.yml" owner=root group=root mode=0644
+    copy: src="local/ib-netfile.yml" dest="/etc/icinga2/ib-netfile.yml" owner=root group=root mode=0644
 
   - name: (ib) Detect infiniband hosts
     set_fact:

@@ -205,6 +205,11 @@ object CheckCommand "ceph" {
   vars.cd_url = "http://127.0.0.1:5000"
 }
 
+object CheckCommand "ceph-new" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check-ceph" ]
+}
+
 object CheckCommand "ipmi" {
   import "plugin-check-command"
   command = [PluginDir + "/check_ipmi_sensor" ]

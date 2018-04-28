@@ -3,8 +3,13 @@
  * master nodes */
 
 object Host "{{ ansible_fqdn }}" {
+{% if 'mon-server' in group_names %}
+  /* Import the default host template defined in `templates.conf`. */
+  import "mon-server-host"
+{% else %}
   /* Import the default host template defined in `templates.conf`. */
   import "generic-host"
+{% endif %}
 
   /* Specify the address attributes for checks e.g. `ssh` or `http`. */
   address = "{{ ansible_default_ipv4['address'] }}"
@@ -28,16 +33,23 @@ object Host "{{ ansible_fqdn }}" {
 {% endfor %}
   /* Normal disk check */
 {% for item in mon_icinga_checks|matching('disk .*') %}
-  vars.disk["{{ item | regex_replace('^disk (.*)$', '\\1')}}"] = {
-    disk_partitions = "{{ item | regex_replace('^disk (.*)$', '\\1')}}",
-    disk_wfree = "25%",
-    disk_cfree = "10%"
+{% set disk=(item|regex_replace('^disk (.*)$', '\\1')) %}
+  vars.disk["{{ disk }}"] = {
+    /* Careful: This is actually the mountpoint! */
+    disk_partitions = "{{ disk }}",
+{% if disk in mon_icinga_disk_thresholds.keys() %}
+    disk_wfree = "{{ mon_icinga_disk_thresholds[disk]['wfree'] }}%",
+    disk_cfree = "{{ mon_icinga_disk_thresholds[disk]['cfree'] }}%"
+{% else %}
+    disk_wfree = "{{ mon_icinga_disk_wfree_default }}%",
+    disk_cfree = "{{ mon_icinga_disk_cfree_default }}%"
+{% endif %}
   }
 {% endfor %}
   /* iostat */
 {% for item in mon_icinga_checks|matching('iostat .*') %}
   vars.iostat["{{ item | regex_replace('^iostat (.*)$', '\\1')}}"] = {
-    iostat_disk = "{{ item | regex_replace('^iostat (.*)$', '\\1')}}",
+    iostat_disk = "{{ item | regex_replace('^iostat (.*)$', '\\1') | regex_replace('^/dev/(.*)$', '\\1') }}",
     iostat_wtps = {{ mon_icinga_iostat_tpsw }},
     iostat_ctps = {{ mon_icinga_iostat_tpsc }},
     iostat_wread = {{ mon_icinga_iostat_readw }},
@@ -69,15 +81,20 @@ object Host "{{ ansible_fqdn }}" {
   /* Check mdadmin raid */
   vars.raid = "true"
 {% endfor %}
-{% for item in mon_icinga_checks|matching('ceph') %}
+{% for item in mon_icinga_checks|matching('ceph$') %}
   /* Check CEPH health */
   vars.ceph = "true"
+{% endfor %}
+{% for item in mon_icinga_checks|matching('ceph-new') %}
+  /* Check CEPH health (>= CEPH Luminous) */
+  vars.cephnew = "true"
 {% endfor %}
 {% for item in mon_icinga_checks|matching('ipmi .*') %}
   /* Check somebody's IPMI */
 {% set item_name=item|regex_replace('^ipmi (.*)$', '\\1') %}
   vars.ipmi["{{ item_name }}"] = {
     ipmi_ip = "{{ (mon_check_ipmi_hosts|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+    parent = ["{{ item_name }} from master"]
   }
 {% endfor %}
 {% for item in mon_icinga_checks|matching('https .*') %}
@@ -130,6 +147,10 @@ object Host "{{ ansible_fqdn }}" {
   vars.ib["{{ item_name }}"] = {
     host = "{{ (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"
     netfile = "/etc/icinga2/ib-netfile.yml"
+{% if (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] in groups['mon-client'] or
+   (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] in groups['mon-server'] %}
+    parent = ["{{ (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }} from master"]
+{% endif %}
   }
 {% endfor %}
 {% for item in mon_icinga_checks|matching('infiniband-net .*')|list %}

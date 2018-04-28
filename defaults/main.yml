@@ -14,6 +14,13 @@ mon_icinga_load_wload15: 5
 mon_icinga_load_cload1: 15
 mon_icinga_load_cload5: 12
 mon_icinga_load_cload15: 10
+mon_icinga_disk_thresholds:
+  /boot/efi:
+    wfree: 40
+    cfree: 20
+
+mon_icinga_disk_wfree_default: 25
+mon_icinga_disk_cfree_default: 10
 
 # Disable manual checks per default:
 mon_check_ipmi_hosts: False
@@ -28,3 +35,10 @@ mon_check_swport: False
 mon_enable_prometheus: True
 mon_enable_syslog_forwarding: True
 mon_logfiles: []
+
+mon_debmon_enabled: True
+mon_is_client: False
+# Use UUIDs instead of e.g. /dev/sda? Useful on clients, but counter-intuitive
+# on, say, CEPH nodes where disks are replaced more or less frequently. Per
+# default this is enabled for clients
+mon_disks_use_uuid: "{{ mon_is_client }}"

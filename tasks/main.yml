@@ -1,13 +1,16 @@
 ---
   - name: Disable IPv6 for APT since debmon has some issues with it
+    when: mon_debmon_enabled
     become: True
     template: src=noipv6.j2 dest=/etc/apt/apt.conf.d/99-apt-ipv4-only owner=root group=root mode=0644
 
   - name: Add debmon repository key
+    when: mon_debmon_enabled
     become: True
     apt_key: data="{{ lookup('file', 'debmon.key') }}" state=present state=present
 
   - name: Add debmon repository
+    when: mon_debmon_enabled
     become: True
     apt_repository: repo='deb http://debmon.org/debmon debmon-{{ ansible_distribution_release }} main' state=present
     register: repochanged
@@ -15,7 +18,7 @@
   - name: Explicitly refresh apt cache
     become: True
     apt: update_cache=yes
-    when: repochanged.changed
+    when: mon_debmon_enabled and repochanged.changed
 
   - name: Install monitoring client packages
     become: True
@@ -25,6 +28,7 @@
       - sysstat
       - bc
       - prometheus-node-exporter
+      - rsyslog
     when: ansible_distribution_release != 'jessie'
 
   - name: Install monitoring client packages
@@ -35,6 +39,7 @@
       - sysstat
       - bc
       - daemon
+      - rsyslog
     when: ansible_distribution_release == 'jessie'
 
   - name: (prometheus) Check prometheus-node-exporter version
@@ -101,7 +106,6 @@
     when: mon_enable_syslog_forwarding
 
   - name: (mdadm) Detect mdadm raids
-    check_mode: False
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
     register: mdout
     failed_when: False
@@ -110,34 +114,26 @@
   - name: (mdadm) Append mdadm raids to list of checks
     set_fact: mon_icinga_checks="{{mon_icinga_checks}} + ['raid']"
     when: mdout.rc == 0 and mdout.stdout != ""
-
-  - name: (disk) Detect mounted volumes
-    set_fact:
-      disk_item: "disk {{ item.device }}"
-    with_items: "{{ ansible_mounts|attr_in('mount', mon_icinga_valid_mounts) }}"
-    register: diskappend
-
-  - name: (disk) Append detected mountpoints to list of checks
-    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ diskappend.results | map(attribute='ansible_facts.disk_item') | list }}"
-
-  - name: (iostat) Enumerate physical disks in this system
-    set_fact:
-      disk_item: "iostat {{ item }}"
-    with_items: "{{ ansible_devices.keys()|matching('[sva]d[a-z]') }}"
-    register: pdiskappend
-
-  - name: (iostat) Append detected disks to list of checks
-    set_fact: mon_icinga_checks='{{mon_icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list }}'
-
   - name: (ceph) Detect if this node is a ceph monitor
     shell: ps ax | grep ceph-mon | grep -v grep
     register: cephout
     changed_when: False
     failed_when: False
 
+  - name: (ceph) Detect ceph version
+    shell: ceph -v | awk '{print $3}'
+    register: cephver
+    when: cephout.stdout != ""
+    changed_when: False
+    failed_when: False
+
+  - name: (ceph) Include legacy ceph handler
+    include_tasks: ceph-legacy.yml
+    when: (cephout.stdout != "") and (cephver.stdout|version_compare('12.2.0', '<'))
+
   - name: (ceph) Include ceph handler
     include_tasks: ceph.yml
-    when: cephout.stdout != ""
+    when: (cephout.stdout != "") and (cephver.stdout|version_compare('12.2.0', '>='))
 
   - name: (ipmi) Include ipmi handler
     include_tasks: ipmi.yml
@@ -151,14 +147,9 @@
     include_tasks: ib.yml
     when: mon_check_infiniband != False
 
-  - name: (smart) Include smart handler
-    include_tasks: smart.yml
-    when: mon_skip_smart == False
-
-  - name: (sas) Include sas smart handler
-    include_tasks: sas.yml
-    when: mon_skip_smart == False
-
+  - name: Include disk-related handlers
+    include_tasks: disk.yml
+   
   - name: (http) Include website handler
     include_tasks: websites.yml
     when: mon_check_websites != False
@@ -168,7 +159,7 @@
     when: mon_check_sensors != False
 
   - name: (ups) Check for apcupsd
-    stat: path=/etc/default/apcupsd
+    stat: path=/etc/apcupsd/apcupsd.conf
     register: ups
     changed_when: False
 
@@ -188,11 +179,18 @@
       - commands.conf
 
   - name: Create icinga host definitions
-    template: src=hosts.conf.j2 dest=fetch/icc/{{ ansible_fqdn }}.conf
+    become: True
+    template: src=hosts.conf.j2 dest=fetch/icc/{{ ansible_fqdn }}.conf owner=root group=root mode=0644
     delegate_to: localhost
 
   - name: Create icinga host variable definitions
-    template: src=vars.conf.j2 dest=fetch/vars/{{ansible_fqdn}}.yml
+    become: True
+    template: src=vars.conf.j2 dest=fetch/vars/{{ansible_fqdn}}.yml owner=root group=root mode=0644
+    delegate_to: localhost
+
+  - name: Create icinga check host definitions
+    become: True
+    template: src=clcheck.conf.j2 dest=fetch/icc/clcheck-{{ ansible_fqdn }}.conf owner=root group=root mode=0644
     delegate_to: localhost
 
   - name: Kill redundant default config files
@@ -217,6 +215,9 @@
     service: name={{ item }} state=started enabled=yes
     with_items:
       - sysstat
+
+  - debug: msg="{{ mon_prometheus_exporters }}"
+    when: mon_enable_prometheus
 
   - name: Create TLS tunnel haproxy config
     become: True

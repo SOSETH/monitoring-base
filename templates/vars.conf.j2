@@ -1,2 +1,6 @@
+{% if mon_enable_prometheus %}
 {{ inventory_hostname }}:
 {{ mon_prometheus_exporters|to_nice_yaml(indent=4) }}
+{% else %}
+{{ inventory_hostname }}: []
+{% endif %}

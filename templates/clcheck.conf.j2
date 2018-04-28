@@ -1,0 +1,29 @@
+{% if mon_is_client %}
+/* Host is marked as client. Check reachability by cluster zone lag */
+object Host "{{ ansible_fqdn }} from master" {
+  check_command = "cluster-zone"
+  vars.cluster_zone = "{{ ansible_fqdn }}"
+  vars.is_client = true
+}
+{% else %}
+/* Host is not marked as client. Check reachability by pinging it directly.
+ * Also enable notifications. */
+object Host "{{ ansible_fqdn }} from master" {
+  check_command = "hostalive"
+  vars.cluster_zone = "{{ ansible_fqdn }}"
+  address = "{{ ansible_default_ipv4['address'] }}"
+  {% if ansible_default_ipv6 %}
+  {% if ansible_default_ipv6['address'].startswith('2001') %}
+  {# Ansible sometimes thinks of link-local IPv6 address as globally reachable
+     addresses. Filter that case. If you know a better way, feel free to fix #}
+  address6 = "{{ ansible_default_ipv6['address'] }}"
+  {% endif %}
+  {% endif %}
+
+  /* Define notification mail attributes for notification apply rules in `notifications.conf`. */
+  vars.notification["mail"] = {
+    /* The UserGroup `icingaadmins` is defined in `users.conf`. */
+    groups = [ "icingaadmins" ]
+  }
+}
+{% endif %}

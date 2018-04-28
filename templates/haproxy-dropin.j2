@@ -11,7 +11,7 @@ backend rsyslog-back
 {% endfor %}
 {% endif %}
 {% if mon_enable_prometheus %}
-
+# Prometheus
 frontend pnexp-front
 	bind :::9101 v4v6 ssl crt /etc/haproxy/pm-sv-full.pem ca-file /etc/haproxy/pm-ca.crt crl-file /etc/haproxy/pm-crl.pem verify required
 	mode tcp
@@ -20,15 +20,26 @@ frontend pnexp-front
 backend pnexp-back
 	mode tcp
 	server local 127.0.0.1:9100
-
-{% for item in mon_prometheus_exporters|matching('ceph') %}
+{% if 'ceph' in mon_prometheus_exporters %}
+# CEPH
 frontend pnexp-ceph-front
 	bind :::9228 v4v6 ssl crt /etc/haproxy/pm-sv-full.pem ca-file /etc/haproxy/pm-ca.crt crl-file /etc/haproxy/pm-crl.pem verify required
-	mode tcp
+	mode http
 	default_backend pnexp-ceph-back
 
 backend pnexp-ceph-back
-	mode tcp
-	server local 127.0.0.1:9128
-{% endfor %}
+	mode http
+	server local 127.0.0.1:9128 check
+
+frontend dash-ceph-front
+	bind :::7001 v4v6 ssl crt /etc/haproxy/pm-sv-full.pem ca-file /etc/haproxy/pm-ca.crt crl-file /etc/haproxy/pm-crl.pem verify required
+	mode http
+	default_backend pnexp-ceph-back
+
+backend dash-ceph-back
+	mode http
+	server local 127.0.0.1:7000 check
+{% else %}
+# No CEPH
+{% endif %}
 {% endif %}
