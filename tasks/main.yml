@@ -1,24 +1,31 @@
 ---
-  - name: Disable IPv6 for APT since debmon has some issues with it
-    when: mon_debmon_enabled
+  - name: Remove legacy APT IPv6 disable
     become: True
-    template: src=noipv6.j2 dest=/etc/apt/apt.conf.d/99-apt-ipv4-only owner=root group=root mode=0644
+    file: path=/etc/apt/apt.conf.d/99-apt-ipv4-only state=absent
 
-  - name: Add debmon repository key
-    when: mon_debmon_enabled
+  - name: Remove debmon repository
     become: True
-    apt_key: data="{{ lookup('file', 'debmon.key') }}" state=present state=present
+    apt_repository: repo='deb http://debmon.org/debmon debmon-{{ ansible_distribution_release }} main' state=absent
 
-  - name: Add debmon repository
-    when: mon_debmon_enabled
+  - name: Remove debmon repository key
     become: True
-    apt_repository: repo='deb http://debmon.org/debmon debmon-{{ ansible_distribution_release }} main' state=present
+    apt_key: id="7E55BD75930BB3674BFD6582DC0EE15A29D662D2" state=absent
+
+  - name: Add Icinga2 repository key
+    when: mon_icingarepo_enabled
+    become: True
+    apt_key: data="{{ lookup('file', 'icinga.key') }}" state=present
+
+  - name: Add Icinga2 repository
+    when: mon_icingarepo_enabled
+    become: True
+    apt_repository: repo='deb http://packages.icinga.com/debian icinga-{{ ansible_distribution_release }} main' state=present
     register: repochanged
 
   - name: Explicitly refresh apt cache
     become: True
     apt: update_cache=yes
-    when: mon_debmon_enabled and repochanged.changed
+    when: mon_icingarepo_enabled and repochanged.changed
 
   - name: Install monitoring client packages
     become: True
@@ -27,38 +34,11 @@
       - icinga2
       - sysstat
       - bc
-      - prometheus-node-exporter
+      - prometheus-node-exporter # sos-monitoring-tools if < Stretch
       - rsyslog
-    when: ansible_distribution_release != 'jessie'
-
-  - name: Install monitoring client packages
-    become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - icinga2
-      - sysstat
-      - bc
-      - daemon
-      - rsyslog
-    when: ansible_distribution_release == 'jessie'
-
-  - name: (prometheus) Check prometheus-node-exporter version
-    become: True
-    shell: apt-cache policy prometheus-node-exporter | grep Install | head -n1 | awk '{print $2}'
-    register: swversion
-    failed_when: False
-    changed_when: False
-    when: ansible_distribution_release == 'jessie' and mon_enable_prometheus
-
-  - name: (prometheus) Copy prometheus-node-exporter package
-    become: True
-    copy: src=prometheus-node-exporter_0.13.0+ds-1_amd64.deb dest=/tmp/prometheus-node-exporter_0.13.0+ds-1_amd64.deb owner=root group=root mode=0644
-    when: ansible_distribution_release == 'jessie' and swversion.stdout != "0.13.0+ds-1" and mon_enable_prometheus
-
-  - name: (prometheus) Install prometheus-node-exporter package
-    become: True
-    command: dpkg -i --force-overwrite /tmp/prometheus-node-exporter_0.13.0+ds-1_amd64.deb
-    when: ansible_distribution_release == 'jessie' and swversion.stdout != "0.13.0+ds-1" and mon_enable_prometheus
+      - check-iostat # sos-monitoring-tools
+      - check-mem # sos-monitoring-tools
+      - check-raid # sos-monitoring-tools
 
   - name: Enable default services
     set_fact:
@@ -112,8 +92,9 @@
     changed_when: False
 
   - name: (mdadm) Append mdadm raids to list of checks
-    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + ['raid']"
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + ['raid']"
     when: mdout.rc == 0 and mdout.stdout != ""
+
   - name: (ceph) Detect if this node is a ceph monitor
     shell: ps ax | grep ceph-mon | grep -v grep
     register: cephout
@@ -149,7 +130,7 @@
 
   - name: Include disk-related handlers
     include_tasks: disk.yml
-   
+
   - name: (http) Include website handler
     include_tasks: websites.yml
     when: mon_check_websites != False
@@ -173,7 +154,7 @@
 
   - name: Create icinga config files
     become: True
-    template: src={{item }}.j2 dest=/etc/icinga2/conf.d/{{item }} owner=root group=root mode=0644
+    template: src={{ item }}.j2 dest=/etc/icinga2/conf.d/{{ item }} owner=root group=root mode=0644
     notify: restart icinga
     with_items:
       - commands.conf
@@ -185,7 +166,7 @@
 
   - name: Create icinga host variable definitions
     become: True
-    template: src=vars.conf.j2 dest=fetch/vars/{{ansible_fqdn}}.yml owner=root group=root mode=0644
+    template: src=vars.conf.j2 dest=fetch/vars/{{ ansible_fqdn }}.yml owner=root group=root mode=0644
     delegate_to: localhost
 
   - name: Create icinga check host definitions
@@ -195,20 +176,11 @@
 
   - name: Kill redundant default config files
     become: True
-    file: path={{item}} state=absent
+    file: path={{ item }} state=absent
     with_items:
       - /etc/icinga2/conf.d/apt.conf
       - /etc/icinga2/conf.d/hosts.conf
       - /etc/icinga2/conf.d/services.conf
-
-  - name: Manually install a few checks from contrib
-    become: True
-    copy: src="{{ item }}" dest="/usr/lib/nagios/plugins/{{ item }}" owner=root group=root mode=0755
-    notify: restart icinga
-    with_items:
-      - check_iostat
-      - check_mem.pl
-      - check_raid.pl
 
   - name: Ensure that services are started and enabled
     become: True

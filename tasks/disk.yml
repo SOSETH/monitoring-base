@@ -1,4 +1,14 @@
 ---
+  - name: (smart|iostat|sas-smart) Install checks
+    become: True
+    when: not mon_skip_smart
+    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
+    with_items:
+      - check-iostat
+      - check-smartvalues
+      - check-sas-smart
+      - sudo
+
   - name: Load physical disks in this system (by path)
     when: not mon_disks_use_uuid
     set_fact:
@@ -26,52 +36,6 @@
 
   - name: (iostat) Append detected disks to list of checks
     set_fact: mon_icinga_checks='{{mon_icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list }}'
-
-  - name: (iostat) Install iostat check
-    become: True
-    when: not mon_skip_smart
-    copy:
-      src: "check_iostat"
-      dest: "/usr/lib/nagios/plugins/check_iostat"
-      owner: root
-      group: root
-      mode: 0755
-
-  - name: (smart) Install dependencies
-    become: True
-    when: not mon_skip_smart
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - libswitch-perl
-      - libjson-xs-perl
-      - libtext-trim-perl
-      - libtry-tiny-perl
-      - libexception-class-perl
-      - sudo
-      - smartmontools
-
-  - name: (smart) Install smart check
-    become: True
-    when: not mon_skip_smart
-    copy:
-      src: "check_smartvalues"
-      dest: "/usr/lib/nagios/plugins/check_smartvalues"
-      owner: root
-      group: root
-      mode: 0755
-
-  - name: (smart) Install smart check config and db
-    become: True
-    when: not mon_skip_smart
-    copy:
-      src: "{{ item }}"
-      dest: "/etc/icinga2/{{ item }}"
-      owner: root
-      group: nagios
-      mode: 0644
-    with_items:
-      - check_smartvalues.cfg.json
-      - check_smartvalues.db.json
 
   - name: (smart) Allow user nagios to execute smartctl with sudo
     become: True
@@ -128,17 +92,7 @@
 
   - name: (smart) Append detected disks to list of checks
     when: not mon_skip_smart and diskstat.stat.exists
-    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list }}"
-
-  - name: (sas-smart) Install smart check
-    become: True
-    when: not mon_skip_smart
-    copy:
-      src: "check_sas_smart"
-      dest: "/usr/lib/nagios/plugins/check_sas_smart"
-      owner: root
-      group: root
-      mode: 0755
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list }}"
 
   - name: (sas-smart) Match installed HDDs/SSDs against database
     become: True

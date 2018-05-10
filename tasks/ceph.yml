@@ -27,7 +27,9 @@
 
   - name: (ceph) Install new (>= Luminous) ceph check
     become: True
-    copy: src=check-ceph dest="/usr/lib/nagios/plugins/check-ceph" owner=nagios group=root mode=0750
+    apt: name={{ item }} state=absent update_cache=yes cache_valid_time=1800
+    with_items:
+      - check-ceph
 
   - name: (ceph) Allow user nagios to execute ceph with sudo
     become: True

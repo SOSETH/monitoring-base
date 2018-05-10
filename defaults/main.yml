@@ -36,7 +36,7 @@ mon_enable_prometheus: True
 mon_enable_syslog_forwarding: True
 mon_logfiles: []
 
-mon_debmon_enabled: True
+mon_icingarepo_enabled: True
 mon_is_client: False
 # Use UUIDs instead of e.g. /dev/sda? Useful on clients, but counter-intuitive
 # on, say, CEPH nodes where disks are replaced more or less frequently. Per

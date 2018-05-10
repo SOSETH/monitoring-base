@@ -1,18 +1,9 @@
 ---
-  - name: (ib) Install dependencies
+  - name: (ib) Install check
     become: True
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
     with_items:
-      - libibnetdisc5
-      - libibmad5
-      - libyaml-cpp0.5v5
-      - libboost-program-options1.62.0
-      - libosmcomp3
-      - libibumad3
-
-  - name: (ib) Install infiniband check
-    become: True
-    copy: src="check_ib" dest="/usr/lib/nagios/plugins/check_ib" owner=root group=root mode=4755
+      - check-ib
 
   - name: (ib) Install infiniband check netfile
     become: True
@@ -25,4 +16,4 @@
     register: ibappend
 
   - name: (ib) Append detected infiniband hosts to list of checks
-    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ ibappend.results | map(attribute='ansible_facts.ib_item') | list }} + ['ib-net']"
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + {{ ibappend.results | map(attribute='ansible_facts.ib_item') | list }} + ['ib-net']"

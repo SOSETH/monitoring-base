@@ -1,23 +1,16 @@
 ---
-  - name: (sensors) Install lm-sensors and check dependencies
+  - name: (sensors) Install check and lm-sensors
     become: True
     apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
     with_items:
-      - libgetopt-long-descriptive-perl
-      - libmonitoring-plugin-perl
-      - liblist-moreutils-perl
-      - libreadonly-perl
       - lm-sensors
+      - check-lm-sensors
     register: lmsensors
 
   - name: (sensors) Configure lm-sensors
     become: True
     command: sensors-detect --auto
     when: lmsensors.changed
-
-  - name: (sensors) Install sensors check
-    become: True
-    copy: src=check_lm_sensors dest=/usr/lib/nagios/plugins/check_lm_sensors owner=root group=root mode=0755
 
   - name: (sensors) Install sensor name remapping file
     become: True
@@ -30,4 +23,4 @@
     register: sensorsappend
 
   - name: (sensors) Append detected sensors to list of checks
-    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ sensorsappend.results | map(attribute='ansible_facts.sensor_item') | list }}"
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + {{ sensorsappend.results | map(attribute='ansible_facts.sensor_item') | list }}"
