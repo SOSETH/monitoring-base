@@ -1,7 +1,7 @@
 ---
 mon_icinga_valid_mounts: ["/", "/boot", "/boot/efi", "/var/lib/influxdb", "/var/lib/elasticsearch", "/var/lib/prometheus", "/var/spool/icinga2"]
-mon_icinga_procs_warn: 250
-mon_icinga_procs_crit: 400
+mon_icinga_procs_warn: 400
+mon_icinga_procs_crit: 600
 mon_icinga_iostat_tpsw: 500
 mon_icinga_iostat_tpsc: 5000
 mon_icinga_iostat_readw: 40000

@@ -29,11 +29,12 @@
 
   - name: Install monitoring client packages
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
+    apt: name={{ item }} state=latest update_cache=yes cache_valid_time=1800
     with_items:
       - icinga2
       - sysstat
       - bc
+      - sudo
       - prometheus-node-exporter # sos-monitoring-tools if < Stretch
       - rsyslog
       - check-iostat # sos-monitoring-tools
@@ -43,6 +44,14 @@
   - name: Enable default services
     set_fact:
       mon_icinga_checks: ["apt"]
+
+  - name: Allow user nagios to execute some checks with sudo
+    become: True
+    lineinfile:
+      dest: "/etc/sudoers"
+      state: present
+      regexp: '^nagios'
+      line: 'nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl, /usr/bin/ceph status --format json-pretty, /sbin/dmsetup status, /sbin/dmsetup status --noflush'
 
   - name: (prometheus) Initialize list of running exporters
     set_fact:
@@ -199,7 +208,7 @@
 
   - name: Ensure that services are started and enabled (prometheus)
     become: True
-    service: name={{ item }} state=started enabled=yes
+    systemd: name={{ item }} state=started enabled=yes
     with_items:
       - haproxy
       - prometheus-node-exporter

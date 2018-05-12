@@ -31,10 +31,6 @@
     with_items:
       - check-ceph
 
-  - name: (ceph) Allow user nagios to execute ceph with sudo
-    become: True
-    lineinfile: "dest=/etc/sudoers state=present regexp='^nagios' line='nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl, /usr/bin/ceph status --format json-pretty'"
-
   - name: (ceph) Ensure ceph prometheus exporter and ceph dashboard are enabled
     become: True
     command: ceph {{ item }}

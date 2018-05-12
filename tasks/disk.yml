@@ -7,7 +7,6 @@
       - check-iostat
       - check-smartvalues
       - check-sas-smart
-      - sudo
 
   - name: Load physical disks in this system (by path)
     when: not mon_disks_use_uuid
@@ -36,15 +35,6 @@
 
   - name: (iostat) Append detected disks to list of checks
     set_fact: mon_icinga_checks='{{mon_icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list }}'
-
-  - name: (smart) Allow user nagios to execute smartctl with sudo
-    become: True
-    when: not mon_skip_smart
-    lineinfile:
-      dest: "/etc/sudoers"
-      state: present
-      regexp: '^nagios'
-      line: 'nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl, /usr/bin/ceph status --format json-pretty'
 
   - name: (smart) Remove tempfile
     become: True
