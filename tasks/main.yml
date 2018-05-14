@@ -51,7 +51,7 @@
       dest: "/etc/sudoers"
       state: present
       regexp: '^nagios'
-      line: 'nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl, /usr/bin/ceph status --format json-pretty, /sbin/dmsetup status, /sbin/dmsetup status --noflush'
+      line: 'nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl, /usr/bin/ceph status --format json-pretty, /sbin/dmsetup status, /sbin/dmsetup status --noflush, /usr/lib/nagios/plugins/check_ib'
 
   - name: (prometheus) Initialize list of running exporters
     set_fact:
@@ -149,6 +149,7 @@
     when: mon_check_sensors != False
 
   - name: (ups) Check for apcupsd
+    become: True
     stat: path=/etc/apcupsd/apcupsd.conf
     register: ups
     changed_when: False
