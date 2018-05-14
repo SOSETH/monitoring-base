@@ -275,7 +275,7 @@ object CheckCommand "sasSOS" {
       skip_key = true
     }
   }
-  
+
   vars.my_device = "$device$"
 }
 
@@ -308,7 +308,7 @@ object CheckCommand "power" {
 
 object CheckCommand "ib-host" {
   import "plugin-check-command"
-  command = [PluginDir + "/check_ib" ]
+  command = ["/usr/bin/sudo", PluginDir + "/check_ib" ]
 
   arguments = {
     "--check-host" = {
