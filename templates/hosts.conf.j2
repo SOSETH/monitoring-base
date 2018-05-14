@@ -167,7 +167,7 @@ object Host "{{ ansible_fqdn }}" {
     interface = "{{ item_name|replace("$", "$$") }}"
   }
 {% endfor %}
-{% for item in mon_icinga_checks|matching('snmpif .*')|list %}
+{% for item in mon_icinga_checks|matching('ups.*')|list %}
   /* Check apcupsd */
   vars.ups = "true"
 {% endfor %}
