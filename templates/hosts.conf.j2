@@ -159,10 +159,10 @@ object Host "{{ ansible_fqdn }}" {
     netfile = "/etc/icinga2/ib-netfile.yml"
   }
 {% endfor %}
-{% for item in mon_icinga_checks|matching('snmpif .*')|list %}
+{% for item in mon_icinga_checks|matching('swport .*')|list %}
   /* Check switch interface via SNMP */
-{% set item_name=item|regex_replace('^snmpif (.*)$', '\\1') %}
-  vars.swport["{{ item }}"] = {
+{% set item_name=item|regex_replace('^swport (.*)$', '\\1') %}
+  vars.swport["{{ item_name }}"] = {
     ip = "{{ (mon_check_swport|selectattr('if', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
     interface = "{{ item_name|replace("$", "$$") }}"
   }

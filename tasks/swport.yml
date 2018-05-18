@@ -7,7 +7,7 @@
 
   - name: (swport) Detect switch ports
     set_fact:
-      swport_item: "snmpif {{ item }}"
+      swport_item: "swport {{ item }}"
     with_items: "{{ mon_check_swport|map(attribute='if')|list }}"
     register: swportappend
 
