@@ -97,6 +97,15 @@ object Host "{{ ansible_fqdn }}" {
     parent = ["{{ item_name }} from master"]
   }
 {% endfor %}
+{% for item in mon_icinga_checks|matching('snmp .*') %}
+  /* Check something via SNMP */
+{% set item_name=item|regex_replace('^snmp (.*)$', '\\1') %}
+  vars.snmp["{{ item_name }}"] = {
+    snmp_address = "{{ (mon_check_snmp_hosts|selectattr('name', 'equalto', item_name)|map(attribute='ip')|list)[0] }}"
+    snmp_oid = "{{ (mon_check_snmp_hosts|selectattr('name', 'equalto', item_name)|map(attribute='oid')|list)[0] }}"
+    snmp_version = "2c"
+  }
+{% endfor %}
 {% for item in mon_icinga_checks|matching('https .*') %}
   /* Check website (https part )*/
 {% set item_name=item|regex_replace('^https (.*)$', '\\1') %}

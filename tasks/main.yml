@@ -162,6 +162,10 @@
     include_tasks: swport.yml
     when: mon_check_swport != False
 
+  - name: (snmp) Include snmp handler
+    include_tasks: snmp.yml
+    when: mon_check_snmp_hosts != False
+
   - name: Create icinga config files
     become: True
     template: src={{ item }}.j2 dest=/etc/icinga2/conf.d/{{ item }} owner=root group=root mode=0644

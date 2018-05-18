@@ -31,6 +31,7 @@ mon_check_websites: False
 mon_check_sensors: False
 mon_apt_enabled: False
 mon_check_swport: False
+mon_check_snmp_hosts: False
 
 mon_enable_prometheus: True
 mon_enable_syslog_forwarding: True
