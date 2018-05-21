@@ -34,6 +34,7 @@ mon_check_swport: False
 mon_check_snmp_hosts: False
 
 mon_enable_prometheus: True
+mon_enable_prometheus_snmp: False
 mon_enable_syslog_forwarding: True
 mon_logfiles: []
 

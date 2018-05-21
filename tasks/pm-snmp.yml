@@ -1,0 +1,39 @@
+---
+  - name: (prometheus) Install snmp exporter
+    become: True
+    apt: name=prometheus-snmp-exporter state=installed # sos-monitoring-tools
+
+  # The SNMP exporter reads it's config from the prometheus dir, however,
+  # prometheus may not be installed. In this case, create the dir with owner
+  # root
+  - name: (prometheus) Ensure prometheus directory exists
+    become: True
+    file:
+      path: /etc/prometheus
+      state: directory
+    register: dirchanged
+
+  # Only set permissions when the directory was created, since otherwise
+  # the prometheus service account exists and the directory might have a
+  # different owner!
+  - name: (prometheus) Set permissions on new prometheus directory
+    become: True
+    when: dirchanged.changed
+    file:
+      path: /etc/prometheus
+      owner: root
+      group: root
+      mode: 0744
+
+  - name: (prometheus) Upload snmp exporter config
+    become: True
+    copy:
+      src: snmp.yml
+      dest: /etc/prometheus/snmp.yml
+      owner: root
+      group: root
+      mode: 0644
+    notify: restart snmp-exporter
+
+  - name: (snmp) Append snmp to list of prometheus exporters
+    set_fact: mon_prometheus_exporters="{{ mon_prometheus_exporters }} + ['snmp']"

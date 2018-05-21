@@ -63,6 +63,10 @@
     file: path=/var/lib/prometheus/node-exporter owner=prometheus group=root mode=0755 state=directory
     when: mon_enable_prometheus
 
+  - name: (prometheus) Handle SNMP exporter
+    when: mon_enable_prometheus_snmp
+    include_tasks: pm-snmp.yml
+
   - name: Actually enable sysstat
     become: True
     template: src=sysstat.j2 dest=/etc/default/sysstat
@@ -213,6 +217,12 @@
       - haproxy
       - prometheus-node-exporter
     when: mon_enable_prometheus
+
+  - name: Forecfully enable prometheus-node-exporter
+    become: True
+    when: mon_enable_prometheus
+    command: systemctl enable prometheus-node-exporter
+    changed_when: False
 
   - name: Ensure that services are started and enabled (syslog)
     become: True

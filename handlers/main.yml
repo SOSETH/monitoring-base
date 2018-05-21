@@ -11,6 +11,10 @@
     become: True
     service: name=prometheus-node-exporter enabled=yes state=restarted
 
+  - name: restart snmp-exporter
+    become: True
+    service: name=prometheus-snmp-exporter enabled=yes state=restarted
+
   - name: restart haproxy
     become: True
     service: name=haproxy enabled=yes state=restarted
