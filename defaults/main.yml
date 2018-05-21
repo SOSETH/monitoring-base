@@ -39,6 +39,7 @@ mon_logfiles: []
 
 mon_icingarepo_enabled: True
 mon_is_client: False
+mon_is_reachable_from_master: "{{ not mon_is_client }}"
 # Use UUIDs instead of e.g. /dev/sda? Useful on clients, but counter-intuitive
 # on, say, CEPH nodes where disks are replaced more or less frequently. Per
 # default this is enabled for clients

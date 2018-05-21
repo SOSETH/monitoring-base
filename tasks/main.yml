@@ -183,11 +183,6 @@
     template: src=vars.conf.j2 dest=fetch/vars/{{ ansible_fqdn }}.yml owner=root group=root mode=0644
     delegate_to: localhost
 
-  - name: Create icinga check host definitions
-    become: True
-    template: src=clcheck.conf.j2 dest=fetch/icc/clcheck-{{ ansible_fqdn }}.conf owner=root group=root mode=0644
-    delegate_to: localhost
-
   - name: Kill redundant default config files
     become: True
     file: path={{ item }} state=absent
