@@ -28,12 +28,14 @@
     set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ diskappend.results | map(attribute='ansible_facts.disk_item') | list }}"
 
   - name: (iostat) Enumerate physical disks in this system
+    when: not mon_skip_smart
     set_fact:
       disk_item: "iostat {{ item }}"
     with_items: "{{ pdisks }}"
     register: pdiskappend
 
   - name: (iostat) Append detected disks to list of checks
+    when: not mon_skip_smart
     set_fact: mon_icinga_checks='{{mon_icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list }}'
 
   - name: (smart) Remove tempfile
