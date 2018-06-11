@@ -150,7 +150,12 @@ object Host "{{ ansible_fqdn }}" {
 {% if (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='auth')|list)[0] == "true" %}
     http_auth_pair = "{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='user')|list)[0] }}:{{ (mon_check_websites|selectattr('name', 'equalto', item_name)|map(attribute='password')|list)[0] }}",
 {% endif %}
-    http_certificate = "10"
+    http_certificate = "10",
+{% if 'https' in mon_icinga_inject_vars and item_name in mon_icinga_inject_vars['https'] %}
+{% for key, value in mon_icinga_inject_vars['https'][item_name].iteritems() %}
+    {{ key }} = "{{ value }}",
+{% endfor %}
+{% endif %}
   }
 {% endfor %}
 {% for item in mon_icinga_checks|matching('http .*') %}
@@ -168,7 +173,12 @@ object Host "{{ ansible_fqdn }}" {
     http_ssl = "true",
     http_sni = "true",
 {% endif %}
-    http_onredirect = "follow"
+    http_onredirect = "follow",
+{% if 'http' in mon_icinga_inject_vars and item_name in mon_icinga_inject_vars['http'] %}
+{% for key, value in mon_icinga_inject_vars['http'][item_name].iteritems() %}
+    {{ key }} = "{{ value }}",
+{% endfor %}
+{% endif %}
   }
 {% endfor %}
 {% for item in mon_icinga_checks|matching('power .*') %}

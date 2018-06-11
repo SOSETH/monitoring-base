@@ -45,3 +45,4 @@ mon_is_reachable_from_master: "{{ not mon_is_client }}"
 # on, say, CEPH nodes where disks are replaced more or less frequently. Per
 # default this is enabled for clients
 mon_disks_use_uuid: "{{ mon_is_client }}"
+mon_icinga_inject_vars: {}
