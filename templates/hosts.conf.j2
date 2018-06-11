@@ -32,6 +32,16 @@ object Host "{{ ansible_fqdn }}" {
 {% endif %}
   }
 {% endif %}
+{% for key, value in mon_icinga_downtime.iteritems() %}
+  vars.downtime["{{ key }}"] = {
+    service_groups = ["{{ value['service_groups']|join('", "') }}"]
+    time = {
+{% for day, time in value['time'].iteritems() %}
+      {{ day }} = "{{ time }}"
+{% endfor %}
+    }
+  }
+{% endfor %}
 
   /* Set custom attribute `os` for hostgroup assignment in `groups.conf`. */
   vars.os = "Linux"

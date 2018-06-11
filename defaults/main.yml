@@ -46,3 +46,4 @@ mon_is_reachable_from_master: "{{ not mon_is_client }}"
 # default this is enabled for clients
 mon_disks_use_uuid: "{{ mon_is_client }}"
 mon_icinga_inject_vars: {}
+mon_icinga_downtime: {}
