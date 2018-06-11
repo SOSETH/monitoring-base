@@ -51,7 +51,7 @@
       dest: "/etc/sudoers"
       state: present
       regexp: '^nagios'
-      line: 'nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl, /usr/bin/ceph status --format json-pretty, /sbin/dmsetup status, /sbin/dmsetup status --noflush, /usr/lib/nagios/plugins/check_ib'
+      line: 'nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl, /usr/bin/ceph status --format json-pretty, /sbin/dmsetup status, /sbin/dmsetup status --noflush, /usr/lib/nagios/plugins/check_ib, /usr/lib/nagios/plugins/check_lsi_raid, /usr/sbin/storcli'
 
   - name: (prometheus) Initialize list of running exporters
     set_fact:
@@ -143,6 +143,16 @@
 
   - name: Include disk-related handlers
     include_tasks: disk.yml
+
+  - name: (megaraid) Check for Broadcom Megaraid device node
+    become: True
+    stat:
+      path: /dev/megaraid_sas_ioctl_node
+    register: megaraid
+
+  - name: (megaraid) Include Megaraid handler
+    include_tasks: megaraid.yml
+    when: megaraid.stat.exists
 
   - name: (http) Include website handler
     include_tasks: websites.yml

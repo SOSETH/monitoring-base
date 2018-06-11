@@ -1,0 +1,35 @@
+---
+  - name: (megaraid) Install megaraid check
+    become: True
+    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
+    with_items:
+      - check-lsi-raid
+
+  - name: (megaraid) Append megaraid to list of checks
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + ['megaraid']"
+
+  - name: (megaraid) Detect disks (SAS)
+    become: True
+    script: list-mr-disks.py -intf SAS
+    register: mrdiskssas
+
+  - name: (megaraid) Detect disks (SATA)
+    become: True
+    script: list-mr-disks.py -intf SATA
+    register: mrdiskssata
+
+  - name: (megaraid) Detect disks (SAS)
+    set_fact:
+      mr_sas_item: "mr-sas {{ item }}"
+    with_items: "{{ mrdiskssas.stdout_lines|default([]) }}"
+    register: mrsasappend
+
+  - name: (megaraid) Detect disks (SATA)
+    set_fact:
+      mr_smart_item: "mr-smart {{ item }}"
+    with_items: "{{ mrdiskssata.stdout_lines|default([]) }}"
+    register: mrsataappend
+
+  - name: (megaraid) Append detected disks to list of checks
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + {{ mrsasappend.results | map(attribute='ansible_facts.mr_sas_item') | list }} + {{ mrsataappend.results | map(attribute='ansible_facts.mr_smart_item') | list }}"
+

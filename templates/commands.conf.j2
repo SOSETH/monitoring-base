@@ -274,9 +274,16 @@ object CheckCommand "sasSOS" {
       required = true
       skip_key = true
     }
+    "-r" = {
+      value = "$raid_device$"
+      description = "Raid device to check"
+      required = false
+      skip_key = false
+    }
   }
 
   vars.my_device = "$device$"
+  vars.raid_device = "$raid_device$"
 }
 
 object CheckCommand "power" {
@@ -425,4 +432,9 @@ object CheckCommand "snmpif" {
   vars.community = "private"
   vars.my_ip = "$ip$"
   vars.my_if = "$interface$"
+}
+
+object CheckCommand "megaraid" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_lsi_raid"]
 }

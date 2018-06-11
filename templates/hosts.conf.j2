@@ -58,6 +58,10 @@ object Host "{{ ansible_fqdn }}" {
 {% endif %}
   }
 {% endfor %}
+{% for item in mon_icinga_checks|matching('megaraid') %}
+  /* Check Broadcom Megaraid status */
+  vars.megaraid = "true"
+{% endfor %}
   /* iostat */
 {% for item in mon_icinga_checks|matching('iostat .*') %}
   vars.iostat["{{ item | regex_replace('^iostat (.*)$', '\\1')}}"] = {
@@ -80,6 +84,19 @@ object Host "{{ ansible_fqdn }}" {
 {% for item in mon_icinga_checks|matching('sas .*') %}
   vars.sas["{{ item | regex_replace('^sas (.*)$', '\\1')}}"] = {
     device = "{{ item | regex_replace('^sas (.*)$', '\\1')}}"
+  }
+{% endfor %}
+  /* SMART check for SAS disks on MegaRaid Controller */
+{% for item in mon_icinga_checks|matching('mr-sas .*') %}
+  vars.mrsas["{{ item | regex_replace('^mr-sas (.*)$', '\\1')}}"] = {
+    raid_device = "{{ item | regex_replace('^mr-sas (.*)$', '\\1')}}"
+    device = "/dev/sda" /* TODO: Detect LD of PD */
+  }
+{% endfor %}
+  /* SMART check for SATA disks on MegaRaid Controller (not implemented yet) */
+{% for item in mon_icinga_checks|matching('mr-smart .*') %}
+  vars.mrsas["{{ item | regex_replace('^mr-smart (.*)$', '\\1')}}"] = {
+    device = "{{ item | regex_replace('^mr-smart (.*)$', '\\1')}}"
   }
 {% endfor %}
   /* Sensor checks for lm-sensors */
