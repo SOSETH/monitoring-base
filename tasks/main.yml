@@ -40,6 +40,8 @@
       - check-iostat # sos-monitoring-tools
       - check-mem # sos-monitoring-tools
       - check-raid # sos-monitoring-tools
+      - libmonitoring-plugin-perl
+      - libmodule-pluggable-perl
 
   - name: Enable default services
     set_fact:
