@@ -191,20 +191,6 @@ object CheckCommand "raid" {
   command = [PluginDir + "/check_raid.pl" ]
 }
 
-object CheckCommand "ceph-custom" {
-  import "plugin-check-command"
-  command = [PluginDir + "/check-ceph-dash.py" ]
-
-  arguments = {
-    "-u" = {
-      value = "$cd_url$"
-      description = "URL where ceph-dash runs."
-    }
-  }
-
-  vars.cd_url = "http://127.0.0.1:5000"
-}
-
 object CheckCommand "ceph-new" {
   import "plugin-check-command"
   command = [PluginDir + "/check_ceph" ]
