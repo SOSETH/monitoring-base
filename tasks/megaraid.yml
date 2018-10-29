@@ -1,9 +1,12 @@
 ---
   - name: (megaraid) Install megaraid check
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - check-lsi-raid
+    apt:
+      name:
+        - check-lsi-raid
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (megaraid) Append megaraid to list of checks
     set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + ['megaraid']"

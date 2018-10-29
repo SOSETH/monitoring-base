@@ -1,9 +1,12 @@
 ---
   - name: (snmp) Install check
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - monitoring-plugins
+    apt:
+      name:
+        - monitoring-plugins
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (snmp) Detect snmp hosts
     set_fact:

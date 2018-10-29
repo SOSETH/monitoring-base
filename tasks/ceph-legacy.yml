@@ -2,11 +2,14 @@
   # Ceph is special. We handle it here
   - name: (ceph) Install check and dependencies
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - ceph-dash
-      - check-ceph-dash
-      - ceph-exporter
+    apt:
+      name:
+        - ceph-dash
+        - check-ceph-dash
+        - ceph-exporter
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (ceph) Ensure that ceph-dash directory exists
     become: True

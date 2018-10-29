@@ -1,7 +1,10 @@
 ---
   - name: (prometheus) Install snmp exporter
     become: True
-    apt: name=prometheus-snmp-exporter state=installed # sos-monitoring-tools
+    apt:
+      name:
+        - prometheus-snmp-exporter # sos-monitoring-tools
+      state: installed
 
   # The SNMP exporter reads it's config from the prometheus dir, however,
   # prometheus may not be installed. In this case, create the dir with owner

@@ -1,11 +1,14 @@
 ---
   - name: (ceph) Remove old ceph check leftovers, if any
     become: True
-    apt: name={{ item }} state=absent update_cache=yes cache_valid_time=1800
-    with_items:
-      - python-ceph
-      - ceph-exporter
-      - ceph-dash
+    apt:
+      name:
+        - python-ceph
+        - ceph-exporter
+        - ceph-dash
+      state: absent
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (ceph) Remove old ceph-dash service
     become: True
@@ -27,9 +30,12 @@
 
   - name: (ceph) Install new (>= Luminous) ceph check
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - check-ceph
+    apt:
+      name:
+        - check-ceph
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (ceph) Ensure ceph prometheus exporter and ceph dashboard are enabled
     become: True

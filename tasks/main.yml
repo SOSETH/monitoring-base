@@ -29,17 +29,20 @@
 
   - name: Install monitoring client packages
     become: True
-    apt: name={{ item }} state=latest update_cache=yes cache_valid_time=1800
-    with_items:
-      - icinga2
-      - sysstat
-      - bc
-      - sudo
-      - prometheus-node-exporter # sos-monitoring-tools if < Stretch
-      - rsyslog
-      - check-iostat # sos-monitoring-tools
-      - check-mem # sos-monitoring-tools
-      - check-raid # sos-monitoring-tools
+    apt:
+      name:
+        - icinga2
+        - sysstat
+        - bc
+        - sudo
+        - prometheus-node-exporter # sos-monitoring-tools if < Stretch
+        - rsyslog
+        - check-iostat # sos-monitoring-tools
+        - check-mem # sos-monitoring-tools
+        - check-raid # sos-monitoring-tools
+      state: latest
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: Enable default services
     set_fact:

@@ -1,9 +1,12 @@
 ---
   - name: (ib) Install check
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - check-ib
+    apt:
+      name:
+        - check-ib
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (ib) Install infiniband check netfile
     become: True
