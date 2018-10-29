@@ -106,6 +106,7 @@
     register: mdout
     failed_when: False
     changed_when: False
+    check_mode: False
 
   - name: (mdadm) Append mdadm raids to list of checks
     set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + ['raid']"
@@ -116,6 +117,7 @@
     register: cephout
     changed_when: False
     failed_when: False
+    check_mode: False
 
   - name: (ceph) Detect ceph version
     shell: ceph -v | awk '{print $3}'
@@ -123,6 +125,7 @@
     when: cephout.stdout != ""
     changed_when: False
     failed_when: False
+    check_mode: False
 
   - name: (ceph) Include legacy ceph handler
     include_tasks: ceph-legacy.yml
