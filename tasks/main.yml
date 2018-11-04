@@ -29,17 +29,20 @@
 
   - name: Install monitoring client packages
     become: True
-    apt: name={{ item }} state=latest update_cache=yes cache_valid_time=1800
-    with_items:
-      - icinga2
-      - sysstat
-      - bc
-      - sudo
-      - prometheus-node-exporter # sos-monitoring-tools if < Stretch
-      - rsyslog
-      - check-iostat # sos-monitoring-tools
-      - check-mem # sos-monitoring-tools
-      - check-raid # sos-monitoring-tools
+    apt:
+      name:
+        - icinga2
+        - sysstat
+        - bc
+        - sudo
+        - prometheus-node-exporter # sos-monitoring-tools if < Stretch
+        - rsyslog
+        - check-iostat # sos-monitoring-tools
+        - check-mem # sos-monitoring-tools
+        - check-raid # sos-monitoring-tools
+      state: latest
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: Enable default services
     set_fact:
@@ -103,6 +106,7 @@
     register: mdout
     failed_when: False
     changed_when: False
+    check_mode: False
 
   - name: (mdadm) Append mdadm raids to list of checks
     set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + ['raid']"
@@ -113,6 +117,7 @@
     register: cephout
     changed_when: False
     failed_when: False
+    check_mode: False
 
   - name: (ceph) Detect ceph version
     shell: ceph -v | awk '{print $3}'
@@ -120,6 +125,7 @@
     when: cephout.stdout != ""
     changed_when: False
     failed_when: False
+    check_mode: False
 
   - name: (ceph) Include legacy ceph handler
     include_tasks: ceph-legacy.yml
@@ -188,13 +194,15 @@
       - commands.conf
 
   - name: Create icinga host definitions
-    become: True
-    template: src=hosts.conf.j2 dest=fetch/icc/{{ ansible_fqdn }}.conf owner=root group=root mode=0644
+    template:
+      src: hosts.conf.j2
+      dest: fetch/icc/{{ ansible_fqdn }}.conf
     delegate_to: localhost
 
   - name: Create icinga host variable definitions
-    become: True
-    template: src=vars.conf.j2 dest=fetch/vars/{{ ansible_fqdn }}.yml owner=root group=root mode=0644
+    template:
+      src: vars.conf.j2
+      dest: fetch/vars/{{ ansible_fqdn }}.yml
     delegate_to: localhost
 
   - name: Kill redundant default config files

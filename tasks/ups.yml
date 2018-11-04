@@ -1,9 +1,12 @@
 ---
   - name: (ups) Install ups check
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - check-apcupsd
+    apt:
+      name:
+        - check-apcupsd
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (ups) Append ups to list of checks
     set_fact: mon_icinga_checks="{{mon_icinga_checks}} + ['ups']"

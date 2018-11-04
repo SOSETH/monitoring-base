@@ -1,9 +1,12 @@
 ---
   - name: (swport) Install check
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - check-snmp-int
+    apt:
+      name:
+        - check-snmp-int
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (swport) Detect switch ports
     set_fact:

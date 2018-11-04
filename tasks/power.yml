@@ -1,9 +1,12 @@
 ---
   - name: (power) Install check
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - check-power
+    apt:
+      name:
+        - check-power
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (power) Detect power strips
     set_fact:

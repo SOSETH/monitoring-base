@@ -1,9 +1,12 @@
 ---
   - name: (ipmi) Install check
     become: True
-    apt: name={{ item }} state=present update_cache=yes cache_valid_time=1800
-    with_items:
-      - check-ipmi-sensor
+    apt:
+      name:
+        - check-ipmi-sensor
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
 
   - name: (ipmi) Save credentials
     become: True
