@@ -32,6 +32,7 @@ mon_check_sensors: False
 mon_apt_enabled: False
 mon_check_swport: False
 mon_check_snmp_hosts: False
+mon_skip_megaraid: False
 
 mon_enable_prometheus: True
 mon_enable_prometheus_snmp: False
@@ -47,3 +48,5 @@ mon_is_reachable_from_master: "{{ not mon_is_client }}"
 mon_disks_use_uuid: "{{ mon_is_client }}"
 mon_icinga_inject_vars: {}
 mon_icinga_downtime: {}
+
+mon_ansible_distribution_release: "{{ ansible_distribution_release }}"

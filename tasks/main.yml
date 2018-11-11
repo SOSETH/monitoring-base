@@ -19,7 +19,7 @@
   - name: Add Icinga2 repository
     when: mon_icingarepo_enabled
     become: True
-    apt_repository: repo='deb http://packages.icinga.com/debian icinga-{{ ansible_distribution_release }} main' state=present
+    apt_repository: repo='deb http://packages.icinga.com/debian icinga-{{ mon_ansible_distribution_release }} main' state=present
     register: repochanged
 
   - name: Explicitly refresh apt cache
@@ -158,7 +158,7 @@
 
   - name: (megaraid) Include Megaraid handler
     include_tasks: megaraid.yml
-    when: megaraid.stat.exists
+    when: megaraid.stat.exists and not mon_skip_megaraid
 
   - name: (http) Include website handler
     include_tasks: websites.yml
