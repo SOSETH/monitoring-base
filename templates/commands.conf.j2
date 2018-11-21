@@ -423,3 +423,55 @@ object CheckCommand "megaraid" {
   import "plugin-check-command"
   command = [PluginDir + "/check_lsi_raid"]
 }
+
+object CheckCommand "cst_mysql" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_mysql" ]
+
+  arguments = {
+    "-H" = {
+      value = "$my_host$"
+      description = "Name/IP/Socket of the database server to check"
+      required = true
+    }
+    "-P" = {
+      value = "$my_port$"
+      description = "Port to use if connecting using TCP"
+    }
+    "-f" = {
+      value = "$my_login$"
+      description = "Path to some my.cnf from where to get user and password"
+      required = true
+    }
+  }
+
+  vars.my_host = "$host$"
+  vars.my_port = "$port$"
+  vars.my_login = "$credentials$"
+}
+
+object CheckCommand "cst_pgsql" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_pgsql" ]
+
+  arguments = {
+    "-H" = {
+      value = "$my_host$"
+      description = "Name/IP/Socket of the database server to check"
+      required = true
+    }
+    "-P" = {
+      value = "$my_port$"
+      description = "Port to use if connecting using TCP"
+    }
+    "--extra-opts" = {
+      value = "@$my_login$"
+      description = "Path to some ini from where to get user and password"
+      required = true
+    }
+  }
+
+  vars.my_host = "$host$"
+  vars.my_port = "$port$"
+  vars.my_login = "$credentials$"
+}

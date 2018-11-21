@@ -186,6 +186,14 @@
     include_tasks: snmp.yml
     when: mon_check_snmp_hosts != False
 
+  - name: (mysql) Include mysql handler
+    include_tasks: mysql.yml
+    when: mon_check_mysql != []
+
+  - name: (pgsql) Include postgresql handler
+    include_tasks: pgsql.yml
+    when: mon_check_pgsql != []
+
   - name: Create icinga config files
     become: True
     template: src={{ item }}.j2 dest=/etc/icinga2/conf.d/{{ item }} owner=root group=root mode=0644

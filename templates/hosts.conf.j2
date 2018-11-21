@@ -229,6 +229,24 @@ object Host "{{ ansible_fqdn }}" {
   /* Check apcupsd */
   vars.ups = "true"
 {% endfor %}
+{% for item in mon_icinga_checks|matching('mysql.*')|list %}
+  /* Check mysql/mariadb */
+{% set item_name=item|regex_replace('^mysql (.*)$', '\\1') %}
+  vars.mysql["{{ item_name }}"] = {
+    host = "{{ (mon_check_mysql|selectattr('name', 'equalto', item_name)|map(attribute='host')|list)[0] }}"
+    port = "{{ (mon_check_mysql|selectattr('name', 'equalto', item_name)|map(attribute='port')|list)[0] }}"
+    credentials = "/etc/icinga2/.my.{{ item_name }}.cnf"
+  }
+{% endfor %}
+{% for item in mon_icinga_checks|matching('pgsql.*')|list %}
+  /* Check mysql/mariadb */
+{% set item_name=item|regex_replace('^pgsql (.*)$', '\\1') %}
+  vars.pgsql["{{ item_name }}"] = {
+    host = "{{ (mon_check_pgsql|selectattr('name', 'equalto', item_name)|map(attribute='host')|list)[0] }}"
+    port = "{{ (mon_check_pgsql|selectattr('name', 'equalto', item_name)|map(attribute='port')|list)[0] }}"
+    credentials = "/etc/icinga2/.pgsql.{{ item_name }}"
+  }
+{% endfor %}
   /* Thresholds for number of processes */
   vars.procs = {
     procs_warning = "{{ mon_icinga_procs_warn }}",
