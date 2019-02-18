@@ -135,11 +135,11 @@
 
   - name: (ceph) Include legacy ceph handler
     include_tasks: ceph-legacy.yml
-    when: (cephout.stdout != "") and (cephver.stdout|version_compare('12.2.0', '<'))
+    when: (cephout.stdout != "") and (cephver.stdout is version('12.2.0', '<'))
 
   - name: (ceph) Include ceph handler
     include_tasks: ceph.yml
-    when: (cephout.stdout != "") and (cephver.stdout|version_compare('12.2.0', '>='))
+    when: (cephout.stdout != "") and (cephver.stdout is version('12.2.0', '>='))
 
   - name: (ipmi) Include ipmi handler
     include_tasks: ipmi.yml

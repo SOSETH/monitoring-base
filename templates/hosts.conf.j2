@@ -32,11 +32,11 @@ object Host "{{ ansible_fqdn }}" {
 {% endif %}
   }
 {% endif %}
-{% for key, value in mon_icinga_downtime.iteritems() %}
+{% for key, value in mon_icinga_downtime.items() %}
   vars.downtime["{{ key }}"] = {
     service_groups = ["{{ value['service_groups']|join('", "') }}"]
     time = {
-{% for day, time in value['time'].iteritems() %}
+{% for day, time in value['time'].items() %}
       {{ day }} = "{{ time }}"
 {% endfor %}
     }
@@ -162,7 +162,7 @@ object Host "{{ ansible_fqdn }}" {
 {% endif %}
     http_certificate = "10",
 {% if 'https' in mon_icinga_inject_vars and item_name in mon_icinga_inject_vars['https'] %}
-{% for key, value in mon_icinga_inject_vars['https'][item_name].iteritems() %}
+{% for key, value in mon_icinga_inject_vars['https'][item_name].items() %}
     {{ key }} = "{{ value }}",
 {% endfor %}
 {% endif %}
@@ -185,7 +185,7 @@ object Host "{{ ansible_fqdn }}" {
 {% endif %}
     http_onredirect = "follow",
 {% if 'http' in mon_icinga_inject_vars and item_name in mon_icinga_inject_vars['http'] %}
-{% for key, value in mon_icinga_inject_vars['http'][item_name].iteritems() %}
+{% for key, value in mon_icinga_inject_vars['http'][item_name].items() %}
     {{ key }} = "{{ value }}",
 {% endfor %}
 {% endif %}

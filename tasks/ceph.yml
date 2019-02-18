@@ -20,10 +20,6 @@
     become: True
     file: path="/opt/ceph-dash" state=absent
 
-  - name: (ceph) Reset keyring permissions to default
-    become: True
-    file: path=/etc/ceph/ceph.client.admin.keyring owner=root group=root mode=0640
-
   - name: (ceph) Remove old ceph check
     become: True
     file: path="/usr/lib/nagios/plugins/check-ceph-dash.py" state=absent
