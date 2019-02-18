@@ -101,6 +101,12 @@
     notify: restart syslog
     when: mon_enable_syslog_forwarding
 
+  - name: Ensure rsyslog log forwarding is disabled
+    become: True
+    file: path=/etc/rsyslog.d/40-syslog-client.conf state=absent
+    notify: restart syslog
+    when: not mon_enable_syslog_forwarding
+
   - name: (mdadm) Detect mdadm raids
     shell: cat /proc/mdstat | grep active | awk '{print $1}'
     register: mdout
