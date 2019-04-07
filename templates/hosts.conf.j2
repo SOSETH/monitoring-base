@@ -23,6 +23,9 @@ object Host "{{ ansible_fqdn }}" {
 
 {% if mon_is_client %}
   /* No zone check as this host is a client */
+  vars.host_check["{{ ansible_fqdn }}"] = {
+    check_host_cmd = "dummy"
+  }
 {% else %}
   vars.host_check["{{ ansible_fqdn }}"] = {
 {% if mon_is_reachable_from_master %}
