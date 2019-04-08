@@ -261,6 +261,13 @@ object Host "{{ ansible_fqdn }}" {
     load_cload5 = "{{ mon_icinga_load_cload5 }}"
     load_cload15 = "{{ mon_icinga_load_cload15 }}"
   }
+  /* Thresholds for memory check */
+  vars.mem = {
+    mem_used = true
+    mem_cache = true
+    mem_warning = "{{ mon_icinga_mem_warn }}"
+    mem_critical = "{{ mon_icinga_mem_crit }}"
+  }
 
   /* Define notification mail attributes for notification apply rules in `notifications.conf`. */
   vars.notification["mail"] = {
