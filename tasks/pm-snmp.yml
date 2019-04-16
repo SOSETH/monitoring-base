@@ -31,7 +31,7 @@
   - name: (prometheus) Upload snmp exporter config
     become: True
     copy:
-      src: snmp.yml
+      src: snmp-cfg.yml
       dest: /etc/prometheus/snmp.yml
       owner: root
       group: root
