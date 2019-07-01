@@ -3,7 +3,7 @@
  * master nodes */
 
 object Host "{{ ansible_fqdn }}" {
-{% if 'mon-server' in group_names %}
+{% if 'mon_server' in group_names %}
   /* Import the default host template defined in `templates.conf`. */
   import "mon-server-host"
 {% else %}
@@ -208,8 +208,8 @@ object Host "{{ ansible_fqdn }}" {
   vars.ib["{{ item_name }}"] = {
     host = "{{ (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"
     netfile = "/etc/icinga2/ib-netfile.yml"
-{% if (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] in groups['mon-client'] or
-   (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] in groups['mon-server'] %}
+{% if (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] in groups['mon_client'] or
+   (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] in groups['mon_server'] %}
     parent = ["{{ (mon_check_infiniband|selectattr('name', 'equalto', item_name)|map(attribute='name')|list)[0] }}"]
 {% endif %}
   }
