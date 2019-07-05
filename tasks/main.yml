@@ -217,16 +217,28 @@
     with_items:
       - commands.conf
 
+  - name: Ensure fetch directorties exist
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - fetch/icc
+      - fetch/vars
+    check_mode: False
+    delegate_to: localhost
+
   - name: Create icinga host definitions
     template:
       src: hosts.conf.j2
       dest: fetch/icc/{{ ansible_fqdn }}.conf
+    check_mode: False
     delegate_to: localhost
 
   - name: Create icinga host variable definitions
     template:
       src: vars.conf.j2
       dest: fetch/vars/{{ ansible_fqdn }}.yml
+    check_mode: False
     delegate_to: localhost
 
   - name: Kill redundant default config files

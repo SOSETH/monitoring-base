@@ -58,12 +58,14 @@
     with_items: "{{ pdisks }}"
     changed_when: False
     failed_when: False
+    check_mode: False
 
   - name: (smart) Check if we detected any disks
     become: True
     when: not mon_skip_smart
     stat: path=/tmp/disks
     register: diskstat
+    check_mode: False
 
   - name: (smart) Load detection result
     become: True
@@ -71,6 +73,7 @@
     shell: cat /tmp/disks
     register: disks
     changed_when: False
+    check_mode: False
 
   - name: (smart) Detect disks
     when: not mon_skip_smart and diskstat.stat.exists
@@ -84,6 +87,7 @@
     when: not mon_skip_smart
     file: path=/tmp/disks state=absent
     changed_when: False
+    check_mode: False
 
   - name: (smart) Append detected disks to list of checks
     when: not mon_skip_smart and diskstat.stat.exists
@@ -99,12 +103,14 @@
     with_items: "{{ pdisks }}"
     changed_when: False
     failed_when: False
+    check_mode: False
 
   - name: (sas-smart) Check if we detected any disks
     become: True
     when: not mon_skip_smart
     stat: path=/tmp/disks
     register: diskstat
+    check_mode: False
 
   - name: (sas-smart) Load detection result
     become: True
@@ -112,6 +118,7 @@
     shell: cat /tmp/disks
     register: disks
     changed_when: False
+    check_mode: False
 
   - name: (sas-smart) Detect disks
     when: not mon_skip_smart and diskstat.stat.exists
@@ -125,6 +132,7 @@
     when: not mon_skip_smart and diskstat.stat.exists
     file: path=/tmp/disks state=absent
     changed_when: False
+    check_mode: False
 
   - name: (sas-smart) Append detected disks to list of checks
     when: not mon_skip_smart and diskstat.stat.exists

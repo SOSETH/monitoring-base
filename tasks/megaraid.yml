@@ -15,11 +15,13 @@
     become: True
     script: list-mr-disks.py -intf SAS
     register: mrdiskssas
+    check_mode: False
 
   - name: (megaraid) Detect disks (SATA)
     become: True
     script: list-mr-disks.py -intf SATA
     register: mrdiskssata
+    check_mode: False
 
   - name: (megaraid) Detect disks (SAS)
     set_fact:
