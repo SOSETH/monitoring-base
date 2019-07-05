@@ -12,12 +12,12 @@
     apt_key: id="7E55BD75930BB3674BFD6582DC0EE15A29D662D2" state=absent
 
   - name: Add Icinga2 repository key
-    when: mon_icingarepo_enabled
+    when: mon_icingarepo_enabled|bool
     become: True
     apt_key: data="{{ lookup('file', 'icinga.key') }}" state=present
 
   - name: Add Icinga2 repository
-    when: mon_icingarepo_enabled
+    when: mon_icingarepo_enabled|bool
     become: True
     apt_repository: repo='deb http://packages.icinga.com/debian icinga-{{ mon_ansible_distribution_release }} main' state=present
     register: repochanged
@@ -69,15 +69,15 @@
   - name: (prometheus) Initialize list of running exporters
     set_fact:
       mon_prometheus_exporters: ["node"]
-    when: mon_enable_prometheus
+      when: mon_enable_prometheus|bool
 
   - name: (prometheus) Create local metrics dir to shut up the node exporter
     become: True
     file: path=/var/lib/prometheus/node-exporter owner=prometheus group=root mode=0755 state=directory
-    when: mon_enable_prometheus
+    when: mon_enable_prometheus|bool
 
   - name: (prometheus) Handle SNMP exporter
-    when: mon_enable_prometheus_snmp
+    when: mon_enable_prometheus_snmp|bool
     include_tasks: pm-snmp.yml
 
   - name: Actually enable sysstat
@@ -89,27 +89,27 @@
     become: True
     template: src=prometheus-node-exporter.j2 dest=/etc/default/prometheus-node-exporter owner=root group=root mode=0644
     notify: restart prometheus nexp
-    when: mon_enable_prometheus
+    when: mon_enable_prometheus|bool
 
   - name: Build haproxy SSL certificate (prometheus)
     become: True
     shell: cat /etc/haproxy/pm-sv.crt /etc/haproxy/pm-sv.key > /etc/haproxy/pm-sv-full.pem
     changed_when: False
     notify: restart haproxy
-    when: mon_enable_prometheus
+    when: mon_enable_prometheus|bool
 
   - name: Build haproxy SSL certificate (syslog)
     become: True
     shell: cat /etc/haproxy/ls-cl.crt /etc/haproxy/ls-cl.key > /etc/haproxy/ls-c-full.pem
     changed_when: False
     notify: restart haproxy
-    when: mon_enable_syslog_forwarding
+    when: mon_enable_syslog_forwarding|bool
 
   - name: Configure rsyslog to forward log messages
     become: True
     template: src=rsyslog-remote.conf.j2 dest=/etc/rsyslog.d/40-syslog-client.conf owner=root group=root
     notify: restart syslog
-    when: mon_enable_syslog_forwarding
+    when: mon_enable_syslog_forwarding|bool
 
   - name: Ensure rsyslog log forwarding is disabled
     become: True
@@ -244,7 +244,7 @@
       - sysstat
 
   - debug: msg="{{ mon_prometheus_exporters }}"
-    when: mon_enable_prometheus
+    when: mon_enable_prometheus|bool
 
   - name: Create TLS tunnel haproxy config
     become: True
@@ -258,11 +258,11 @@
     with_items:
       - haproxy
       - prometheus-node-exporter
-    when: mon_enable_prometheus
+    when: mon_enable_prometheus|bool
 
   - name: Forecfully enable prometheus-node-exporter
     become: True
-    when: mon_enable_prometheus
+    when: mon_enable_prometheus|bool
     command: systemctl enable prometheus-node-exporter
     changed_when: False
 
@@ -272,4 +272,4 @@
     with_items:
       - haproxy
       - rsyslog
-    when: mon_enable_syslog_forwarding
+    when: mon_enable_syslog_forwarding|bool
