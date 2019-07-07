@@ -28,7 +28,7 @@
     register: diskappend
 
   - name: (disk) Append detected mountpoints to list of checks
-    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ diskappend.results | map(attribute='ansible_facts.disk_item') | list }}"
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ diskappend.results | map(attribute='ansible_facts.disk_item') | list | sort }}"
 
   - name: (iostat) Enumerate physical disks in this system
     when: not mon_skip_smart
@@ -39,7 +39,7 @@
 
   - name: (iostat) Append detected disks to list of checks
     when: not mon_skip_smart
-    set_fact: mon_icinga_checks='{{mon_icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list }}'
+    set_fact: mon_icinga_checks='{{mon_icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list | sort }}'
 
   - name: (smart) Remove tempfile
     become: True
