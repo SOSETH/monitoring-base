@@ -91,7 +91,7 @@
 
   - name: (smart) Append detected disks to list of checks
     when: not mon_skip_smart and diskstat.stat.exists
-    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list }}"
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list | sort }}"
 
   - name: (sas-smart) Match installed HDDs/SSDs against database
     become: True
@@ -136,4 +136,4 @@
 
   - name: (sas-smart) Append detected disks to list of checks
     when: not mon_skip_smart and diskstat.stat.exists
-    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list }}"
+    set_fact: mon_icinga_checks="{{ mon_icinga_checks }} + {{ smartappend.results | map(attribute='ansible_facts.smart_item') | list | sort }}"
