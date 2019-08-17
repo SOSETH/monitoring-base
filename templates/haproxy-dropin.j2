@@ -7,7 +7,7 @@ frontend rsyslog-front
 backend rsyslog-back
 	mode tcp
 {% for item in mon_syslog_servers %}
-	server remote {{ item }}:6514 ssl crt /etc/haproxy/ls-c-full.pem ca-file /etc/haproxy/ls-ca.crt verify required check
+	server {{ item }} {{ item }}:6514 ssl crt /etc/haproxy/ls-c-full.pem ca-file /etc/haproxy/ls-ca.crt verify required check
 {% endfor %}
 {% endif %}
 {% if mon_enable_prometheus %}
