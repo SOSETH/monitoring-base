@@ -135,21 +135,9 @@
     failed_when: False
     check_mode: False
 
-  - name: (ceph) Detect ceph version
-    shell: ceph -v | awk '{print $3}'
-    register: cephver
-    when: cephout.stdout != ""
-    changed_when: False
-    failed_when: False
-    check_mode: False
-
-  - name: (ceph) Include legacy ceph handler
-    include_tasks: ceph-legacy.yml
-    when: (cephout.stdout != "") and (cephver.stdout is version('12.2.0', '<'))
-
   - name: (ceph) Include ceph handler
     include_tasks: ceph.yml
-    when: (cephout.stdout != "") and (cephver.stdout is version('12.2.0', '>='))
+    when: cephout.stdout != ""
 
   - name: (ipmi) Include ipmi handler
     include_tasks: ipmi.yml
