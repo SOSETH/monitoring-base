@@ -242,7 +242,7 @@ object Host "{{ ansible_fqdn }}" {
   }
 {% endfor %}
 {% for item in mon_icinga_checks|matching('pgsql.*')|list %}
-  /* Check mysql/mariadb */
+  /* Check pgsql */
 {% set item_name=item|regex_replace('^pgsql (.*)$', '\\1') %}
   vars.pgsql["{{ item_name }}"] = {
     host = "{{ (mon_check_pgsql|selectattr('name', 'equalto', item_name)|map(attribute='host')|list)[0] }}"

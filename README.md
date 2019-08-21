@@ -52,3 +52,5 @@ Checks configured manually:
 * swport: Check switchports via SNMP, tested on a duo of Cisco SG350X's, your mileage may vary. This check takes an array of dicts:
   * ip: IP of the Switch(stack)
   * if: Interface to check as named in SNMP, e.g. TengigabitEthernet1/0/1$
+* mysql: Give connection properties, see defaults/main.yml mon_check_mysql
+* pgsql: Give connection properties, see defaults/main.yml mon_check_pgsql
