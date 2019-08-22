@@ -36,7 +36,18 @@ mon_check_swport: False
 mon_check_snmp_hosts: False
 mon_skip_megaraid: False
 mon_check_mysql: []
+# name: some unique name
+# host: localhost
+# port: 5432
+# user: root
+# password: changeme
+
 mon_check_pgsql: []
+# name: some more unique name
+# host: localhost
+# port: 636
+# user: postgres
+# password: changeme
 
 mon_enable_prometheus: True
 mon_enable_prometheus_snmp: False
