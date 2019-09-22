@@ -22,10 +22,16 @@
     apt_repository: repo='deb http://packages.icinga.com/debian icinga-{{ mon_ansible_distribution_release }} main' state=present
     register: repochanged
 
+  - name: Add stretch-backports on Debian stretch hosts
+    become: True
+    apt_repository: repo='deb http://debian.ethz.ch/debian/ stretch-backports main contrib non-free' state=present
+    when: ansible_distribution_release == 'stretch'
+    register: backports_repo
+
   - name: Explicitly refresh apt cache
     become: True
     apt: update_cache=yes
-    when: mon_icingarepo_enabled and repochanged.changed
+    when: (mon_icingarepo_enabled and repochanged.changed) or (mon_icingarepo_enabled and ansible_distribution_release == 'stretch' and backports_repo.changed)
 
   - name: Install monitoring client packages
     become: True
