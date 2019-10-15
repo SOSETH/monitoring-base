@@ -55,4 +55,15 @@ backend dash-ceph-back
 {% else %}
 # No CEPH
 {% endif %}
+{% for item in mon_prometheus_extra_exporters %}
+# Custom exporter {{ item.name }} alias custom{{ loop.index }}
+frontend pnexp-custom{{ loop.index }}-front
+	bind :::{{ 9200 + loop.index - 1 }} v4v6 ssl crt /etc/haproxy/pm-sv-full.pem ca-file /etc/haproxy/pm-ca.crt crl-file /etc/haproxy/pm-crl.pem verify required
+	mode tcp
+	default_backend pnexp-custom{{ loop.index }}-back
+
+backend pnexp-custom{{ loop.index }}-back
+	mode tcp
+	server local 127.0.0.1:{{ item.port }}
+{% endfor %}
 {% endif %}

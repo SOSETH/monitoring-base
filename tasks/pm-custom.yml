@@ -1,0 +1,12 @@
+---
+  - name: (custom) Set name
+    set_fact:
+      intname: "custom{{ prometheus_custom_index + 1 }}"
+
+  - name: (custom) Append custom to list of prometheus exporters
+    set_fact:
+      mon_prometheus_exporters: "{{ mon_prometheus_exporters + [intname] }}"
+
+  - name: (custom) Increment counter
+    set_fact:
+      prometheus_custom_index: "{{ prometheus_custom_index + 1 }}"

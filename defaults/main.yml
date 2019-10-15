@@ -65,3 +65,9 @@ mon_icinga_inject_vars: {}
 mon_icinga_downtime: {}
 
 mon_ansible_distribution_release: "{{ ansible_distribution_release }}"
+
+mon_prometheus_extra_exporters: []
+#  - name: myfancyapp
+#    port: 2112
+#
+mon_prometheus_apt: False

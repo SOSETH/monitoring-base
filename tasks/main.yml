@@ -70,6 +70,29 @@
     when: mon_enable_prometheus_snmp|bool
     include_tasks: pm-snmp.yml
 
+  - name: (prometheus) Init custom exporters
+    set_fact:
+      prometheus_custom_index: 0
+
+  - name: (prometheus) Handle custom exporters
+    include_tasks: pm-custom.yml
+    with_items: "{{ mon_prometheus_extra_exporters }}"
+
+  - name: (prometheus) Disable APT check
+    when: mon_enable_prometheus|bool and not mon_prometheus_apt|bool
+    become: True
+    service:
+      name: prometheus-node-exporter-apt.timer
+      state: stopped
+      enabled: no
+
+  - name: (prometheus) Remove APT state
+    when: mon_enable_prometheus|bool and not mon_prometheus_apt|bool
+    become: True
+    file:
+      path: /var/lib/prometheus/node-exporter/apt.prom
+      state: absent
+
   - name: Actually enable sysstat
     become: True
     template: src=sysstat.j2 dest=/etc/default/sysstat
