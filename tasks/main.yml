@@ -48,16 +48,6 @@
     set_fact:
       mon_icinga_checks: ["apt"]
 
-      # Until Icinga PR 7065 is in some release, we need this:
-  - name: Overwrite icinga2 logrotate config
-    become: True
-    copy:
-      src: icinga2.logrotate
-      dest: /etc/logrotate.d/icinga2
-      owner: root
-      group: root
-      mode: 0644
-
   - name: Allow user nagios to execute some checks with sudo
     become: True
     lineinfile:
@@ -69,7 +59,7 @@
   - name: (prometheus) Initialize list of running exporters
     set_fact:
       mon_prometheus_exporters: ["node"]
-      when: mon_enable_prometheus|bool
+    when: mon_enable_prometheus|bool
 
   - name: (prometheus) Create local metrics dir to shut up the node exporter
     become: True
