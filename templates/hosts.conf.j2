@@ -12,7 +12,11 @@ object Host "{{ ansible_fqdn }}" {
 {% endif %}
 
   /* Specify the address attributes for checks e.g. `ssh` or `http`. */
+{% if not mon_override_ipv4|default(False) %}
   address = "{{ ansible_default_ipv4['address'] }}"
+{% else %}
+  address = "{{ mon_ipv4 }}"
+{% endif %}
 {% if ansible_default_ipv6 %}
 {% if ansible_default_ipv6['address'].startswith('2001') %}
   {# Ansible sometimes thinks of link-local IPv6 address as globally reachable
