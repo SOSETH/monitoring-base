@@ -37,6 +37,7 @@
         - sudo
         - prometheus-node-exporter # sos-monitoring-tools if < Stretch
         - rsyslog
+        - monitoring-plugins
         - check-iostat # sos-monitoring-tools
         - check-mem # sos-monitoring-tools
         - check-raid # sos-monitoring-tools
