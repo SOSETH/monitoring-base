@@ -40,8 +40,6 @@
       - config-key set mgr/prometheus/server_addr 127.0.0.1
       - config-key set mgr/prometheus/server_port 9128
       - mgr module enable prometheus
-      - config-key set mgr/dashboard/server_addr 127.0.0.1
-      - mgr module enable dashboard
     changed_when: False
 
   - name: (ceph) Append ceph to list of checks
