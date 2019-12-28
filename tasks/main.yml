@@ -63,6 +63,12 @@
       mon_prometheus_exporters: ["node"]
     when: mon_enable_prometheus|bool
 
+  - name: (prometheus) Load node exporter version
+    when: mon_enable_prometheus|bool
+    shell: "prometheus-node-exporter --version 2>&1 | awk '{print $3}' | head -n1"
+    register: nodexpv
+    changed_when: False
+
   - name: (prometheus) Create local metrics dir to shut up the node exporter
     become: True
     file: path=/var/lib/prometheus/node-exporter owner=prometheus group=root mode=0755 state=directory
@@ -87,6 +93,7 @@
       name: prometheus-node-exporter-apt.timer
       state: stopped
       enabled: no
+    failed_when: False
 
   - name: (prometheus) Remove APT state
     when: mon_enable_prometheus|bool and not mon_prometheus_apt|bool
@@ -94,6 +101,7 @@
     file:
       path: /var/lib/prometheus/node-exporter/apt.prom
       state: absent
+    failed_when: False
 
   - name: Actually enable sysstat
     become: True
