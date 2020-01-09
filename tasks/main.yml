@@ -40,6 +40,7 @@
         - check-iostat # sos-monitoring-tools
         - check-mem # sos-monitoring-tools
         - check-raid # sos-monitoring-tools
+        - nagios-plugins
       state: latest
       update_cache: yes
       cache_valid_time: 1800
