@@ -475,3 +475,43 @@ object CheckCommand "cst_pgsql" {
   vars.my_port = "$port$"
   vars.my_login = "$credentials$"
 }
+
+object CheckCommand "ldaps" {
+  import "plugin-check-command"
+  command = [PluginDir + "/check_ldaps" ]
+ 
+  arguments = {
+    "-H" = {
+      value = "{{ mon_check_ldaps_host }}"
+      description = "hostname"
+      required = true
+    }
+    "-D" = {
+      value = "{{ mon_check_ldaps_bind }}"
+      description = "binddn"
+      required = true
+    }
+    "-P" = {
+      value = "{{ mon_check_ldaps_password }}"
+      description = "LDAP password"
+      required = true
+    }
+    "-b" = {
+      value = "{{ mon_check_ldaps_base }}"
+      description = "basedn"
+    }
+    "-p" = {
+      value = "636"
+      description = "port"
+    }
+    "-4" = {
+      description = "use ipv4 connection"
+    }
+    "-T" = {
+      description = "use starttls mechanism introduced in protocol version 3"
+    }
+    "-3" = {
+      description = "use ldap protocol version 3"
+    }
+  }
+}
