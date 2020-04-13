@@ -1,5 +1,9 @@
 ---
 mon_icinga_valid_mounts: ["/", "/boot", "/boot/efi", "/var/lib/influxdb", "/var/lib/elasticsearch", "/var/lib/prometheus", "/var/spool/icinga2"]
+mon_icinga_blacklist: []
+# - /dev/sda
+mon_icinga_blacklist_ids: []
+# - /dev/disk/by-id/...
 mon_icinga_procs_warn: 400
 mon_icinga_procs_crit: 600
 mon_icinga_iostat_tpsw: 500
