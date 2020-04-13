@@ -14,12 +14,12 @@
   - name: Load physical disks in this system (by path)
     when: not mon_disks_use_uuid|bool
     set_fact:
-      pdisks: "{{ ansible_devices|attr_not_matching('removable', '^1')|keys|matching('[sva]d[a-z]')|prepend('/dev/') }}"
+      pdisks: "{{ ansible_devices|attr_not_matching('removable', '^1')|keys|matching('[sva]d[a-z]')|prepend('/dev/')|difference(mon_icinga_blacklist) }}"
 
   - name: Load physical disks in this system (by uuid)
     when: mon_disks_use_uuid|bool
     set_fact:
-      pdisks: "{{ ansible_devices|attr_not_matching('removable', '^1')|keys|matching('[sva]d[a-z]')|map('extract', ansible_devices, 'links')|map(attribute='ids')|first_sub|prepend('/dev/disk/by-id/') }}"
+      pdisks: "{{ ansible_devices|attr_not_matching('removable', '^1')|keys|matching('[sva]d[a-z]')|map('extract', ansible_devices, 'links')|map(attribute='ids')|first_sub|prepend('/dev/disk/by-id/')|difference(mon_icinga_blacklist_ids) }}"
 
   - name: (disk) Detect mounted volumes
     set_fact:
