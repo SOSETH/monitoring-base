@@ -32,6 +32,7 @@ mon_icinga_disk_cfree_default: 10
 mon_check_ipmi_hosts: False
 mon_check_power_strips: False
 mon_check_infiniband: False
+mon_skip_iostat: False
 mon_skip_smart: False
 mon_check_websites: False
 mon_check_sensors: False

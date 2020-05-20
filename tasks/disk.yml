@@ -1,14 +1,19 @@
 ---
-  - name: (smart|iostat|sas-smart) Install checks
+  - name: (iostat) Install checks
     become: True
     apt:
       name:
         - check-iostat
+      state: present
+    when: not mon_skip_iostat
+
+  - name: (smart|sas-smart) Install checks
+    become: True
+    apt:
+      name:
         - check-smartvalues
         - check-sas-smart
       state: present
-      update_cache: yes
-      cache_valid_time: 1800
     when: not mon_skip_smart
 
   - name: Load physical disks in this system (by path)
@@ -31,14 +36,14 @@
     set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ diskappend.results | map(attribute='ansible_facts.disk_item') | list | sort }}"
 
   - name: (iostat) Enumerate physical disks in this system
-    when: not mon_skip_smart
+    when: not mon_skip_iostat
     set_fact:
       disk_item: "iostat {{ item }}"
     with_items: "{{ pdisks }}"
     register: pdiskappend
 
   - name: (iostat) Append detected disks to list of checks
-    when: not mon_skip_smart
+    when: not mon_skip_iostat
     set_fact: mon_icinga_checks='{{mon_icinga_checks}} + {{ pdiskappend.results | map(attribute="ansible_facts.disk_item") | list | sort }}'
 
   - name: (smart) Remove tempfile
