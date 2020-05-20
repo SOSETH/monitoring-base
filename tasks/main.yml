@@ -63,6 +63,7 @@
     when: mon_enable_prometheus|bool
 
   - name: (prometheus) Load node exporter version
+    check_mode: False
     when: mon_enable_prometheus|bool
     shell: "prometheus-node-exporter --version 2>&1 | awk '{print $3}' | head -n1"
     register: nodexpv
