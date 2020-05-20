@@ -1,16 +1,4 @@
 ---
-  - name: Remove legacy APT IPv6 disable
-    become: True
-    file: path=/etc/apt/apt.conf.d/99-apt-ipv4-only state=absent
-
-  - name: Remove debmon repository
-    become: True
-    apt_repository: repo='deb http://debmon.org/debmon debmon-{{ ansible_distribution_release }} main' state=absent
-
-  - name: Remove debmon repository key
-    become: True
-    apt_key: id="7E55BD75930BB3674BFD6582DC0EE15A29D662D2" state=absent
-
   - name: Add Icinga2 repository key
     when: mon_icingarepo_enabled|bool
     become: True
@@ -42,8 +30,6 @@
         - check-mem # sos-monitoring-tools
         - check-raid # sos-monitoring-tools
       state: latest
-      update_cache: yes
-      cache_valid_time: 1800
 
   - name: Enable default services
     set_fact:
@@ -260,12 +246,6 @@
       - /etc/icinga2/conf.d/hosts.conf
       - /etc/icinga2/conf.d/services.conf
 
-  - name: Ensure that services are started and enabled
-    become: True
-    service: name={{ item }} state=started enabled=yes
-    with_items:
-      - sysstat
-
   - debug: msg="{{ mon_prometheus_exporters }}"
     when: mon_enable_prometheus|bool
 
@@ -275,24 +255,33 @@
     notify: restart haproxy
     when: mon_enable_syslog_forwarding or mon_enable_prometheus
 
+  - name: Ensure that services are started and enabled
+    set_fact:
+      mon_services_to_enable:
+        - sysstat
+
   - name: Ensure that services are started and enabled (prometheus)
     become: True
-    systemd: name={{ item }} state=started enabled=yes
+    set_fact:
+      mon_services_to_enable: "{{ mon_services_to_enable }} + [ '{{ item }}' ]"
     with_items:
       - haproxy
       - prometheus-node-exporter
     when: mon_enable_prometheus|bool
 
-  - name: Forecfully enable prometheus-node-exporter
-    become: True
-    when: mon_enable_prometheus|bool
-    command: systemctl enable prometheus-node-exporter
-    changed_when: False
-
   - name: Ensure that services are started and enabled (syslog)
     become: True
-    service: name={{ item }} state=started enabled=yes
+    set_fact:
+      mon_services_to_enable: "{{ mon_services_to_enable }} + [ '{{ item }}' ]"
     with_items:
       - haproxy
       - rsyslog
     when: mon_enable_syslog_forwarding|bool
+
+  - name: Ensure that services are started and enabled
+    become: True
+    service:
+      name: "{{ item }}"
+      state: started
+      enabled: yes
+    with_items: "{{ mon_services_to_enable }}"
