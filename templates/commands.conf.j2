@@ -475,3 +475,8 @@ object CheckCommand "cst_pgsql" {
   vars.my_port = "$port$"
   vars.my_login = "$credentials$"
 }
+
+object CheckCommand "systemd" {
+  import "plugin-check-command"
+	command = [PluginDir + "/check_systemd_service.sh nginx" ]
+}

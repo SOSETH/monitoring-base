@@ -1,0 +1,9 @@
+---
+
+- name: (systemd) Install check
+  become: True
+  copy:
+    src: "checks/check_systemd_service.sh"
+    dest: "/usr/lib/nagios/plugins/check_systemd_service.sh"
+    #remote_src: yes
+    mode: "755"
