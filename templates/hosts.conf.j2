@@ -254,6 +254,13 @@ object Host "{{ ansible_fqdn }}" {
     credentials = "/etc/icinga2/.pgsql.{{ item_name }}"
   }
 {% endfor %}
+{% for item in mon_icinga_checks|matching('systemd.*')|list %}
+  /* Check systemd */
+{% set item_name=item|regex_replace('^systemd (.*)$', '\\1') %}
+  vars.systemd["{{ item_name }}"] = {
+    service = "{{ (mon_check_systemd|selectattr('name', 'equalto', item_name)|map(attribute='service')|list)[0] }}"
+  }
+{% endfor %}
   /* Thresholds for number of processes */
   vars.procs = {
     procs_warning = "{{ mon_icinga_procs_warn }}",

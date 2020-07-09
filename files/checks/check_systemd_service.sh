@@ -1,9 +1,9 @@
-#! /bin/sh
+#! /bin/bash
 
-[ ! -z $1 ] || exit 1;
+[ -n "$2" ] || exit 1;
 
-is_active=$(systemctl is-active "$1");
-echo "$is_active"
+is_active=$(systemctl is-active "$2");
+echo "$2 is $is_active on $(hostname)"
 
 if [ "$is_active" == active ]; then
 	exit 0;
