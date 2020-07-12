@@ -208,6 +208,10 @@
     include_tasks: pgsql.yml
     when: mon_check_pgsql != []
 
+  - name: (ldap) Include ldap handler
+    include_tasks: ldap.yml
+    when: mon_check_ldap != []
+
   - name: Create icinga config files
     become: True
     template: src={{ item }}.j2 dest=/etc/icinga2/conf.d/{{ item }} owner=root group=root mode=0644

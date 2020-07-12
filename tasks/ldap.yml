@@ -1,0 +1,29 @@
+---
+  - name: (ldap) Install check
+    become: True
+    apt:
+      name:
+        - monitoring-plugins-standard
+      state: present
+      update_cache: yes
+      cache_valid_time: 1800
+
+  - name: (ldap) Detect ldap-servers
+    set_fact:
+      ldap_item: "ldap {{ item }}"
+    with_items: "{{ mon_check_ldap|map(attribute='name')|list }}"
+    register: ldapappend
+
+  - name: (ldap) Append detected ldap-servers to list of checks
+    set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ ldapappend.results | map(attribute='ansible_facts.ldap_item') | list }}"
+
+  - name: (ldap) Store credentials for check
+    become: True
+    template:
+      src: ldapcheck.conf.j2
+      dest: "/etc/icinga2/.ldap.{{ item.name }}"
+      owner: nagios
+      group: nagios
+      mode: 0600
+    with_items: "{{ mon_check_ldap }}"
+    no_log: True

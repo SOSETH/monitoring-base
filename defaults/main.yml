@@ -54,6 +54,8 @@ mon_check_pgsql: []
 # user: postgres
 # password: changeme
 
+mon_check_ldap: []
+
 mon_enable_prometheus: True
 mon_enable_prometheus_snmp: False
 mon_enable_syslog_forwarding: True
