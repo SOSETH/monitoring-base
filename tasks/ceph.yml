@@ -1,29 +1,4 @@
 ---
-  - name: (ceph) Remove old ceph check leftovers, if any
-    become: True
-    apt:
-      name:
-        - python-ceph
-        - ceph-exporter
-        - ceph-dash
-      state: absent
-      update_cache: yes
-      cache_valid_time: 1800
-
-  - name: (ceph) Remove old ceph-dash service
-    become: True
-    file: path="/etc/systemd/system/{{ item }}" state=absent
-    with_items:
-      - ceph-dash.service
-
-  - name: (ceph) Remove old ceph-dash runner
-    become: True
-    file: path="/opt/ceph-dash" state=absent
-
-  - name: (ceph) Remove old ceph check
-    become: True
-    file: path="/usr/lib/nagios/plugins/check-ceph-dash.py" state=absent
-
   - name: (ceph) Install new (>= Luminous) ceph check
     become: True
     apt:
@@ -40,8 +15,6 @@
       - config-key set mgr/prometheus/server_addr 127.0.0.1
       - config-key set mgr/prometheus/server_port 9128
       - mgr module enable prometheus
-      - config-key set mgr/dashboard/server_addr 127.0.0.1
-      - mgr module enable dashboard
     changed_when: False
 
   - name: (ceph) Append ceph to list of checks
