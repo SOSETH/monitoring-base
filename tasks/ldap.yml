@@ -16,14 +16,3 @@
 
   - name: (ldap) Append detected ldap-servers to list of checks
     set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ ldapappend.results | map(attribute='ansible_facts.ldap_item') | list }}"
-
-  - name: (ldap) Store credentials for check
-    become: True
-    template:
-      src: ldapcheck.conf.j2
-      dest: "/etc/icinga2/.ldap.{{ item.name }}"
-      owner: nagios
-      group: nagios
-      mode: 0600
-    with_items: "{{ mon_check_ldap }}"
-    no_log: True
