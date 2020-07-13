@@ -93,10 +93,3 @@ mon_prometheus_extra_exporters: []
 #    port: 2112
 #
 mon_prometheus_apt: False
-
-
-mon_check_ldaps_host: ""
-mon_check_ldaps_bind: ""
-mon_check_ldaps_base: ""
-mon_check_ldaps_password: ""
-
