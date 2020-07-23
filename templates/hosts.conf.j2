@@ -254,6 +254,20 @@ object Host "{{ ansible_fqdn }}" {
     credentials = "/etc/icinga2/.pgsql.{{ item_name }}"
   }
 {% endfor %}
+{% for item in mon_icinga_checks|matching('ldap.*')|list %}
+  /* Check ldap */
+{% set item_name=item|regex_replace('^ldap (.*)$', '\\1') %}
+  vars.ldap["{{ item_name }}"] = {
+    ldap_address = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_address')|list)[0] }}"
+    ldap_port = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_port')|list)[0] }}"
+    ldap_base = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_base')|list)[0] }}"
+    ldap_bind = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_bind')|list)[0] }}"
+    ldap_pass = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_pass')|list)[0] }}"
+    ldap_starttls = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_starttls')|list)[0] }}"
+    ldap_v3 = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_v3')|list)[0] }}"
+    ldap_warning = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_warning')|list)[0] }}"
+    ldap_critical = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_critical')|list)[0] }}"
+    ldap_timeout = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_timeout')|list)[0] }}"
 {% for item in mon_icinga_checks|matching('systemd.*')|list %}
   /* Check systemd */
 {% set item_name=item|regex_replace('^systemd (.*)$', '\\1') %}

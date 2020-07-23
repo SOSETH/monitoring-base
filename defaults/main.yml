@@ -54,6 +54,19 @@ mon_check_pgsql: []
 # user: postgres
 # password: changeme
 
+mon_check_ldap: []
+# name: some most unique name
+# ldap_address: ldap server address without protocol or port
+# ldap_port: ldap[s] port
+# ldap_base: ldap base
+# ldap_bind: ldap bind
+# ldap_pass: bind password
+# ldap_starttls: whether to use starttls ("true" or "false" as string)
+# ldap_v3: whether to use ldap v3 ("true" or "false" as string)
+# ldap_warning: seconds until warning
+# ldap_critical: seconds until critical
+# ldap_timeout: (optional) seconds until timeout (default: 10)
+
 mon_check_systemd: []
 # name: name
 # service: name of the service
