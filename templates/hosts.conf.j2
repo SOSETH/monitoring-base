@@ -268,6 +268,7 @@ object Host "{{ ansible_fqdn }}" {
     ldap_warning = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_warning')|list)[0] }}"
     ldap_critical = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_critical')|list)[0] }}"
     ldap_timeout = "{{ (mon_check_ldap|selectattr('name', 'equalto', item_name)|map(attribute='ldap_timeout')|list)[0] }}"
+{% endfor %}
 {% for item in mon_icinga_checks|matching('systemd.*')|list %}
   /* Check systemd */
 {% set item_name=item|regex_replace('^systemd (.*)$', '\\1') %}
