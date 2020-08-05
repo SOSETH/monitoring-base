@@ -54,6 +54,7 @@ mon_check_pgsql: []
 # user: postgres
 # password: changeme
 
+# Checks if LDAP-Server is available by binding
 mon_check_ldap: []
 # name: some most unique name
 # ldap_address: ldap server address without protocol or port
