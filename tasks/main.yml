@@ -41,7 +41,7 @@
       dest: "/etc/sudoers"
       state: present
       regexp: '^nagios'
-      line: 'nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl, /usr/bin/ceph status --format json-pretty, /sbin/dmsetup status, /sbin/dmsetup status --noflush, /usr/lib/nagios/plugins/check_ib, /usr/lib/nagios/plugins/check_lsi_raid, /usr/sbin/storcli'
+      line: 'nagios ALL=(ALL) NOPASSWD: /usr/sbin/smartctl, /usr/bin/ceph status --format json-pretty, /sbin/dmsetup status, /sbin/dmsetup status --noflush, /usr/lib/nagios/plugins/check_ib, /usr/lib/nagios/plugins/check_lsi_raid, /usr/sbin/storcli, /usr/sbin/storcli64'
 
   - name: (prometheus) Initialize list of running exporters
     set_fact:
