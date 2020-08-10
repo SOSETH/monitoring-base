@@ -6,6 +6,7 @@ object Host "{{ ansible_fqdn }}" {
 {% if 'mon_server' in group_names %}
   /* Import the default host template defined in `templates.conf`. */
   import "mon-server-host"
+  vars.is_master = "yes"
 {% else %}
   /* Import the default host template defined in `templates.conf`. */
   import "generic-host"
@@ -26,18 +27,15 @@ object Host "{{ ansible_fqdn }}" {
 {% endif %}
 
 {% if mon_is_client %}
-  /* No zone check as this host is a client */
-  vars.host_check["{{ ansible_fqdn }}"] = {
-    check_host_cmd = "dummy"
-  }
+  /* No reachability check as this host is a client */
+  check_command = "dummy"
 {% else %}
-  vars.host_check["{{ ansible_fqdn }}"] = {
 {% if mon_is_reachable_from_master %}
-    check_host_cmd = "hostalive"
+  check_command = "hostalive"
 {% else %}
-    check_host_cmd = "cluster-zone"
+  /* No reachability check as this host is not reachable from master */
+  check_command = "dummy"
 {% endif %}
-  }
 {% endif %}
 {% for key, value in mon_icinga_downtime.items() %}
   vars.downtime["{{ key }}"] = {
@@ -285,5 +283,7 @@ object Host "{{ ansible_fqdn }}" {
   {# Is this host a client? A client does not generate warnings if it becomes
      unreachable #}
   vars.is_client = {{ hostvars['mon_is_client'] }}
+{% else %}
+  vars.is_server = "yes"
 {% endif %}
 }
