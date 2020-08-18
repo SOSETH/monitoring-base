@@ -29,6 +29,7 @@
         - check-iostat # sos-monitoring-tools
         - check-mem # sos-monitoring-tools
         - check-raid # sos-monitoring-tools
+        - nagios-plugins
       state: latest
 
   - name: Enable default services
@@ -206,6 +207,14 @@
   - name: (pgsql) Include postgresql handler
     include_tasks: pgsql.yml
     when: mon_check_pgsql != []
+
+  - name: (ldap) Include ldap handler
+    include_tasks: ldap.yml
+    when: mon_check_ldap != []
+    
+  - name: (systemd) Include systemd handler
+    include_tasks: systemd.yml
+    when: mon_check_systemd != []
 
   - name: Create icinga config files
     become: True
