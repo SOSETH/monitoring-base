@@ -1,0 +1,17 @@
+---
+
+- name: (systemd) Install check
+  become: True
+  copy:
+    src: "checks/check_systemd_service.sh"
+    dest: "/usr/lib/nagios/plugins/check_systemd_service.sh"
+    mode: "755"
+
+- name: (systemd) Detect systemd services
+  set_fact:
+    systemd_item: "systemd {{ item }}"
+  with_items: "{{ mon_check_systemd|map(attribute='name')|list }}"
+  register: systemdappend
+
+- name: (systemd) Append detected systemd services to list of checks
+  set_fact: mon_icinga_checks="{{mon_icinga_checks}} + {{ systemdappend.results | map(attribute='ansible_facts.systemd_item') | list }}"
