@@ -476,7 +476,7 @@ object CheckCommand "cst_pgsql" {
   vars.my_login = "$credentials$"
 }
 
-object CheckCommand "systemd2" {
+object CheckCommand "custom-systemd" {
   import "plugin-check-command"
   command = [PluginDir + "/check_systemd_service.sh"]
 
