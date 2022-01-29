@@ -49,12 +49,9 @@
       mon_prometheus_exporters: ["node"]
     when: mon_enable_prometheus|bool
 
-  - name: (prometheus) Load node exporter version
-    check_mode: False
-    when: mon_enable_prometheus|bool
-    shell: "prometheus-node-exporter --version 2>&1 | awk '{print $3}' | head -n1"
-    register: nodexpv
-    changed_when: False
+  - name: Gather package facts
+    package_facts:
+      manager: auto
 
   - name: (prometheus) Create local metrics dir to shut up the node exporter
     become: True

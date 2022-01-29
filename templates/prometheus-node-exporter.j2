@@ -1,7 +1,7 @@
 ARGS="--collector.diskstats.ignored-devices=^(ram|loop|fd)\d+$ \
       --collector.filesystem.ignored-mount-points=^/(sys|proc|dev|run)($|/) \
       --collector.textfile.directory=/var/lib/prometheus/node-exporter \
-{% if nodexpv.stdout is version('0.17.0', '>=') %}
+{% if 'prometheus-node-exporter' in ansible_facts.packages and ansible_facts.packages['prometheus-node-exporter'][0].version is version('0.17.0', '>=') %}
       --web.listen-address=127.0.0.1:9100 \
       --no-collector.systemd"
 {% else %}
